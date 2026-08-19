@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "laser-management-system",
+  "name": "lms",
   "main": "src/worker.js",
   "compatibility_date": "2024-09-25",
   "assets": {
