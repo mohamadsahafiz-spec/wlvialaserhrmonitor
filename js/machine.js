@@ -68,7 +68,7 @@ export const MachineController = {
 
         if (heroCritName) heroCritName.textContent = crit.name;
         if (heroCritSerial) heroCritSerial.textContent = `SN: ${crit.serialNo || 'N/A'}`;
-        if (heroCritText) heroCritText.textContent = crit.status === 'BASELINE_REQUIRED' ? 'BASELINE REQUIRED' : crit.status;
+        if (heroCritText) heroCritText.textContent = crit.status === 'BASELINE_REQUIRED' ? 'BASELINE' : crit.status;
         if (heroCritBadge) {
             let statusClass = 'color-safe';
             let bgClass = 'bg-safe';
@@ -205,7 +205,47 @@ export const MachineController = {
                 remainText = lm.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
             }
 
+            let countdownText = '—';
+            if (lm.remainingDaysInfo && lm.remainingDaysInfo.daysVal !== null && !isNaN(lm.remainingDaysInfo.daysVal)) {
+                const daysVal = Math.abs(lm.remainingDaysInfo.daysVal);
+                countdownText = lm.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d remaining`;
+            }
+
+            const replaceByDateText = lm.eolDate && lm.eolDate !== '—' ? lm.eolDate : 'N/A';
+            const lastRecalText = lm.lastRecalibrationDate ? formatDate(lm.lastRecalibrationDate) : (lm.baseTimestamp ? formatDate(lm.baseTimestamp) : 'Initial Baseline');
+
             const genNumber = lm.generation || (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1);
+
+            const installedDateText = (lm.installedDate || lm.baseTimestamp) ? formatDate(lm.installedDate || lm.baseTimestamp) : '—';
+            const installedByText = lm.installedBy || lm.lastEngineer || 'Service Specialist';
+            const baselineHoursText = (lm.baseLaserHour !== null && lm.baseLaserHour !== undefined) ? `${lm.baseLaserHour} hrs` : '0 hrs';
+
+            const replHistory = Array.isArray(lm.replacementHistory) ? lm.replacementHistory : (Array.isArray(lm.lifecycleHistory) ? lm.lifecycleHistory : []);
+            const replCount = replHistory.length;
+
+            const replItemsHtml = replCount > 0 ? replHistory.map(rec => {
+                const rDate = rec.replacementDate || rec.date || rec.timestamp;
+                const dateStr = rDate ? formatDate(rDate) : '—';
+                const prevHrs = rec.previousRuntime !== undefined ? `${rec.previousRuntime} hrs` : '—';
+                const baseHrs = rec.newBaselineHours !== undefined ? `${rec.newBaselineHours} hrs` : '0 hrs';
+                const eng = rec.engineer || 'Service Specialist';
+                const note = rec.reason ? (rec.notes ? `${rec.reason} • ${rec.notes}` : rec.reason) : (rec.notes || '');
+
+                return `
+                    <div class="lhc-repl-item">
+                        <div class="lhc-repl-header">
+                            <span class="lhc-repl-date">${dateStr}</span>
+                            <span class="badge badge-info" style="font-size:8px; padding:1px 4px;">Gen ${rec.generation || 1}</span>
+                        </div>
+                        <div class="lhc-repl-stats">
+                            <div><span style="color:var(--muted)">Prev:</span> <strong>${prevHrs}</strong></div>
+                            <div><span style="color:var(--muted)">New Base:</span> <strong>${baseHrs}</strong></div>
+                            <div style="grid-column: 1 / -1;"><span style="color:var(--muted)">By:</span> <strong>${eng}</strong></div>
+                        </div>
+                        ${note ? `<div class="lhc-repl-notes">${note}</div>` : ''}
+                    </div>
+                `;
+            }).join('') : `<div class="lhc-repl-empty">Active Gen 1 • No prior replacements recorded</div>`;
 
             const contingencyInfoHtml = lm.isContingencyActive ? `
                 <div style="margin-top: 10px; padding: 8px 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--red); border-radius: 6px; font-size: 11px; color: #fca5a5; font-weight: 700; line-height: 1.4;">
@@ -223,15 +263,15 @@ export const MachineController = {
             card.innerHTML = `
                 <div class="lhc-header">
                     <div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:6px;">
                             <div class="lhc-title">${lm.name}</div>
-                            <span class="badge badge-info" style="font-size:10px; font-weight:700; padding:2px 6px;">Gen ${genNumber}</span>
+                            <span class="badge badge-info" style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px;">Gen ${genNumber}</span>
                         </div>
                         <div class="lhc-subtitle">SN: ${lm.serialNo}</div>
                     </div>
-                    <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40;">
-                        <div class="mc-led" style="background:${dotColor}; box-shadow: 0 0 8px ${dotColor}"></div>
-                        ${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE REQUIRED' : lm.status}
+                    <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10px; padding:2px 8px;">
+                        <div class="mc-led" style="width:7px; height:7px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
+                        ${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE' : lm.status}
                     </div>
                 </div>
 
@@ -241,16 +281,24 @@ export const MachineController = {
                         <span class="lhc-stat-val">${currentHrsText}</span>
                     </div>
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Rated Life</span>
-                        <span class="lhc-stat-val">${lm.ratedLife} hrs</span>
-                    </div>
-                    <div class="lhc-stat-item">
                         <span class="lhc-stat-label">Remaining Hr</span>
                         <span class="lhc-stat-val ${badgeClass}">${remainText}</span>
                     </div>
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Accuracy Rating</span>
-                        <span class="lhc-stat-val" style="font-size:13px; margin-top:4px;">${lm.accuracy.label}</span>
+                        <span class="lhc-stat-label">Replace By</span>
+                        <span class="lhc-stat-val" style="font-size:12px;">${replaceByDateText}</span>
+                    </div>
+                    <div class="lhc-stat-item">
+                        <span class="lhc-stat-label">Countdown</span>
+                        <span class="lhc-stat-val ${lm.remainingTotal < 0 ? 'color-alarm' : ''}" style="font-size:12px;">${countdownText}</span>
+                    </div>
+                    <div class="lhc-stat-item">
+                        <span class="lhc-stat-label">Accuracy</span>
+                        <span class="lhc-stat-val" style="font-size:11px; margin-top:2px;">${lm.accuracy.label}</span>
+                    </div>
+                    <div class="lhc-stat-item">
+                        <span class="lhc-stat-label">Last Recal</span>
+                        <span class="lhc-stat-val" style="font-size:11px; margin-top:2px;">${lastRecalText}</span>
                     </div>
                 </div>
 
@@ -259,41 +307,76 @@ export const MachineController = {
                         <span>Life Remaining</span>
                         <strong style="color:${dotColor}">${lm.baselineRequired ? '—' : (lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining)}</strong>
                     </div>
-                    <div class="mini-health-track" style="width:100%; height:10px;">
+                    <div class="mini-health-track" style="width:100%; height:8px;">
                         <div class="mini-health-fill" style="width:${(lm.baselineRequired || lm.isContingencyActive) ? 0 : (lm.lifeRemainingPercent || 0)}%; background:${dotColor};"></div>
                     </div>
                 </div>
 
+                <!-- Laser Installation & Replacement History Details -->
+                <details class="lhc-history-details">
+                    <summary class="lhc-history-summary">
+                        <span>Installation & History</span>
+                        <span class="badge ${replCount > 0 ? 'badge-info' : 'badge-neutral'}" style="font-size:8px; padding:1px 5px;">${replCount} ${replCount === 1 ? 'Replacement' : 'Replacements'}</span>
+                    </summary>
+                    <div class="lhc-history-content">
+                        <div class="lhc-install-grid">
+                            <div class="lhc-install-field">
+                                <span class="lhc-install-label">Installed Date</span>
+                                <span class="lhc-install-val">${installedDateText}</span>
+                            </div>
+                            <div class="lhc-install-field">
+                                <span class="lhc-install-label">Installed By</span>
+                                <span class="lhc-install-val">${installedByText}</span>
+                            </div>
+                            <div class="lhc-install-field" style="grid-column: 1 / -1;">
+                                <span class="lhc-install-label">Current Baseline</span>
+                                <span class="lhc-install-val">${baselineHoursText}</span>
+                            </div>
+                        </div>
+
+                        <div class="lhc-repl-section-title">Replacement History (Newest First)</div>
+                        <div class="lhc-repl-list">
+                            ${replItemsHtml}
+                        </div>
+                    </div>
+                </details>
+
                 ${baselineInfoHtml}
                 ${contingencyInfoHtml}
 
-                <div class="lhc-actions">
-                    <button class="btn btn-primary btn-sm btn-replace-laser" data-laser-id="${lm.id}" title="Replace laser diode unit">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
-                        Replace Laser
-                    </button>
-                    ${lm.status === 'BASELINE_REQUIRED' ? `
-                    <button class="btn btn-secondary btn-sm btn-edit-laser" data-laser-id="${lm.id}">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        Set Baseline
-                    </button>
-                    ` : `
-                    <button class="btn btn-secondary btn-sm btn-recal-laser" data-laser-id="${lm.id}">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
-                        Recalibrate
-                    </button>
-                    <button class="btn btn-secondary btn-sm btn-edit-laser" data-laser-id="${lm.id}">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        Edit
-                    </button>
-                    `}
-                    ${laserList.length > 1 ? `
-                    <button class="btn btn-icon-danger btn-delete-laser" data-laser-id="${lm.id}" title="Remove Laser Head">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>` : `
-                    <button class="btn btn-icon-danger btn-delete-laser" data-laser-id="${lm.id}" title="At least one laser head is required." disabled style="opacity:0.4; cursor:not-allowed;">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    </button>`}
+                <div class="lhc-action-group">
+                    <div class="lhc-primary-actions">
+                        <button class="btn btn-primary btn-sm btn-replace-laser" data-laser-id="${lm.id}" title="Replace laser diode unit">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                            Replace Laser
+                        </button>
+                        ${lm.status === 'BASELINE_REQUIRED' ? `
+                        <button class="btn btn-secondary btn-sm btn-edit-laser" data-laser-id="${lm.id}" title="Set initial baseline reading">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            Set Baseline
+                        </button>
+                        ` : `
+                        <button class="btn btn-secondary btn-sm btn-recal-laser" data-laser-id="${lm.id}" title="Recalibrate runtime hours">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                            Recalibrate
+                        </button>
+                        `}
+                    </div>
+                    <div class="lhc-footer-actions">
+                        <button class="btn-lhc-ghost btn-edit-laser" data-laser-id="${lm.id}" title="Edit laser parameters">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            <span>Edit</span>
+                        </button>
+                        ${laserList.length > 1 ? `
+                        <button class="btn-lhc-ghost btn-lhc-ghost-danger btn-delete-laser" data-laser-id="${lm.id}" title="Remove Laser Head">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Delete</span>
+                        </button>` : `
+                        <button class="btn-lhc-ghost btn-lhc-ghost-danger btn-delete-laser" data-laser-id="${lm.id}" title="At least one laser head is required." disabled style="opacity:0.35; cursor:not-allowed;">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:12px;height:12px;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            <span>Delete</span>
+                        </button>`}
+                    </div>
                 </div>
             `;
 
@@ -319,16 +402,16 @@ export const MachineController = {
                 };
             }
 
-            const editBtn = card.querySelector('.btn-edit-laser');
-            if (editBtn) {
-                editBtn.onclick = (e) => {
+            const editBtns = card.querySelectorAll('.btn-edit-laser');
+            editBtns.forEach(btn => {
+                btn.onclick = (e) => {
                     e.preventDefault();
                     e.stopPropagation();
                     if (typeof callbacks.onEditLaser === 'function') {
                         callbacks.onEditLaser(machine.id, lm.id);
                     }
                 };
-            }
+            });
 
             const deleteBtn = card.querySelector('.btn-delete-laser');
             if (deleteBtn && !deleteBtn.disabled) {

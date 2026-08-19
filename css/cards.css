@@ -9,12 +9,12 @@
 
 .fleet-section-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 18px;
 }
 
 .machine-card {
-    padding: 20px;
+    padding: 20px 22px;
     cursor: pointer;
     transition: var(--transition);
     position: relative;
@@ -22,8 +22,17 @@
     flex-direction: column;
     justify-content: space-between;
     height: 100%;
-    min-height: 290px;
+    min-height: 240px;
+    border-radius: 12px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.machine-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(56, 189, 248, 0.15);
 }
 
 @keyframes alarmBreathing {
@@ -49,112 +58,107 @@
     }
 }
 
-
 .mc-header {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
-    margin-bottom: 16px;
+    align-items: center;
+    margin-bottom: 14px;
 }
-.mc-title { font-size: 19px; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
-.mc-subtitle { font-size: 13px; color: var(--muted); margin-top: 4px; display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-
-.mc-num-badge {
-    background: rgba(56, 189, 248, 0.15);
-    color: var(--primary);
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-weight: 700;
-    font-size: 12px;
-    border: 1px solid rgba(56, 189, 248, 0.3);
+.mc-title {
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--text);
+    letter-spacing: -0.4px;
 }
 
 .mc-status-badge {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid;
-    backdrop-filter: blur(4px);
-    white-space: nowrap;
-}
-.mc-led { width: 8px; height: 8px; border-radius: 50%; }
-
-.mc-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    padding: 16px 0;
-    border-top: 1px solid var(--glass-border);
-    border-bottom: 1px solid var(--glass-border);
-    margin-bottom: 16px;
-}
-.mc-stat-item { display: flex; flex-direction: column; }
-.mc-stat-label { font-size: 10px; text-transform: uppercase; color: var(--muted); font-weight: 700; letter-spacing: 0.8px; }
-.mc-stat-val { font-size: 18px; font-weight: 800; margin-top: 4px; letter-spacing: -0.3px; white-space: nowrap; }
-
-.mc-extra-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-bottom: 16px;
-    background: var(--input-bg);
-    padding: 10px 14px;
-    border-radius: 10px;
-    border: 1px solid var(--glass-border);
-}
-
-.mc-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: auto;
-}
-
-.mc-card-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.btn-card-action {
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    color: var(--text);
-    padding: 6px 10px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: var(--transition);
     display: inline-flex;
     align-items: center;
-    justify-content: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    border: 1px solid;
+    backdrop-filter: blur(4px);
+    letter-spacing: 0.4px;
+    white-space: nowrap;
+}
+.mc-led {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
 }
 
-.btn-card-action:hover {
-    background: var(--glass-bg-hover);
-    border-color: var(--primary);
-    transform: scale(1.05);
+/* Primary Current Hour */
+.mc-primary-hour-box {
+    margin: 8px 0 14px 0;
+}
+.mc-primary-hour {
+    font-size: 32px;
+    font-weight: 900;
+    color: var(--text);
+    letter-spacing: -0.8px;
+    line-height: 1.1;
 }
 
-.mini-health-track {
-    width: 120px;
+/* Clean 2-column metrics block */
+.mc-metrics-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--glass-border);
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 14px;
+}
+.mc-split-item {
+    display: flex;
+    flex-direction: column;
+}
+.mc-split-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+.mc-split-val {
+    font-size: 16px;
+    font-weight: 800;
+    margin-top: 3px;
+    letter-spacing: -0.2px;
+    white-space: nowrap;
+}
+
+/* Life Remaining Progress Section */
+.mc-progress-section {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: auto;
+}
+.mc-progress-track {
+    flex: 1;
     height: 10px;
     background: var(--input-bg);
     border-radius: 999px;
     overflow: hidden;
     border: 1px solid var(--glass-border);
 }
-.mini-health-fill {
+.mc-progress-fill {
     height: 100%;
     border-radius: 999px;
     transition: width .3s ease;
+}
+.mc-progress-label {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text);
+    white-space: nowrap;
+    min-width: 44px;
+    text-align: right;
 }
 
 /* =====================================================
@@ -199,61 +203,63 @@
     display: inline-block;
 }
 
-/* Machine View - Laser Heads Grid */
+/* Machine View - Laser Heads Grid - High Density */
 .laser-heads-section {
-    margin-top: 24px;
+    margin-top: 18px;
 }
 .laser-heads-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 10px;
 }
 .laser-heads-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 18px;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 14px;
 }
 .laser-head-card {
-    padding: 20px;
-    border-radius: 14px;
+    padding: 14px 16px;
+    border-radius: 12px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
-    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    justify-content: space-between;
+    gap: 10px;
     transition: var(--transition);
 }
 .laser-head-card:hover {
     border-color: var(--primary);
-    box-shadow: 0 6px 20px rgba(56,189,248,0.15);
+    box-shadow: 0 6px 18px rgba(56,189,248,0.12);
 }
 .lhc-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
+    gap: 6px;
 }
 .lhc-title {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 800;
     color: var(--text);
     letter-spacing: -0.2px;
 }
 .lhc-subtitle {
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
-    margin-top: 2px;
+    margin-top: 1px;
 }
 .lhc-stats {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 10px;
-    padding: 12px;
+    gap: 6px 10px;
+    padding: 8px 10px;
     background: var(--input-bg);
-    border-radius: 10px;
+    border-radius: 8px;
     border: 1px solid var(--glass-border);
 }
 .lhc-stat-item {
@@ -261,34 +267,188 @@
     flex-direction: column;
 }
 .lhc-stat-label {
-    font-size: 10px;
+    font-size: 9px;
     text-transform: uppercase;
     font-weight: 700;
     color: var(--muted);
     letter-spacing: 0.5px;
 }
 .lhc-stat-val {
-    font-size: 15px;
+    font-size: 13px;
     font-weight: 800;
     color: var(--text);
-    margin-top: 2px;
+    margin-top: 1px;
 }
 .lhc-progress-box {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 4px;
 }
 .lhc-progress-meta {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 12px;
+    font-size: 11px;
     color: var(--muted);
 }
-.lhc-actions {
+.lhc-action-group {
     display: flex;
-    gap: 8px;
-    align-items: center;
+    flex-direction: column;
+    gap: 6px;
     margin-top: 4px;
+}
+.lhc-primary-actions {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+.lhc-primary-actions .btn {
+    flex: 1;
+    padding: 7px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    justify-content: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+.lhc-footer-actions {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--glass-border);
+}
+.btn-lhc-ghost {
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: var(--transition);
+}
+.btn-lhc-ghost:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text);
+}
+.btn-lhc-ghost-danger:hover {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--red);
+}
+
+/* Laser Head Installation & Replacement History */
+.lhc-history-details {
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 2px;
+    font-size: 11px;
+}
+.lhc-history-summary {
+    padding: 6px 10px;
+    cursor: pointer;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+    background: rgba(255, 255, 255, 0.03);
+    transition: var(--transition);
+}
+.lhc-history-summary:hover {
+    background: rgba(255, 255, 255, 0.07);
+    color: var(--primary);
+}
+.lhc-history-content {
+    padding: 8px 10px;
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+.lhc-install-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 8px;
+    background: rgba(255, 255, 255, 0.02);
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.lhc-install-field {
+    display: flex;
+    flex-direction: column;
+}
+.lhc-install-label {
+    font-size: 9px;
+    color: var(--muted);
+    font-weight: 700;
+    text-transform: uppercase;
+}
+.lhc-install-val {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.lhc-repl-section-title {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--muted);
+    margin-top: 2px;
+}
+.lhc-repl-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 180px;
+    overflow-y: auto;
+}
+.lhc-repl-item {
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--glass-border);
+    border-radius: 6px;
+    padding: 6px 8px;
+}
+.lhc-repl-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+}
+.lhc-repl-date {
+    font-weight: 700;
+    color: var(--primary);
+}
+.lhc-repl-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2px 6px;
+    color: var(--text);
+    font-size: 10px;
+}
+.lhc-repl-notes {
+    font-size: 10px;
+    color: var(--muted);
+    margin-top: 3px;
+    line-height: 1.3;
+}
+.lhc-repl-empty {
+    font-size: 10px;
+    color: var(--muted);
+    font-style: italic;
+    padding: 2px 0;
 }
 

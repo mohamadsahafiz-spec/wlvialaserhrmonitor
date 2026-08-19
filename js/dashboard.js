@@ -139,21 +139,44 @@ export const DashboardController = {
                 const metrics = LaserEngine.calculateMachineMetrics(m, evalTime);
                 const card = container.querySelector(`.machine-card[data-id="${m.id}"]`);
                 if (card) {
-                    const currentVal = card.querySelector('.mc-stat-val-current');
+                    const crit = metrics.mostCriticalLaser;
+                    const formatHrs = Math.abs(crit.remainingTotal);
+                    const remainText = crit.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
+
+                    let replaceDaysText = '—';
+                    if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
+                        const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
+                        replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d`;
+                    }
+
+                    const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
+                    const lifeRemainingDisplay = crit.isContingencyActive ? '0%' : crit.formattedLifeRemaining;
+                    const lifeRemainingPct = crit.isContingencyActive ? 0 : crit.lifeRemainingPercent;
+
+                    const currentVal = card.querySelector('.mc-primary-hour');
                     const remainVal = card.querySelector('.mc-stat-val-remain');
-                    const daysVal = card.querySelector('.mc-stat-val-days');
-                    const healthFill = card.querySelector('.mini-health-fill');
-                    const healthText = card.querySelector('.mc-health-text');
-                    if (currentVal) currentVal.textContent = `${metrics.currentHour} hrs`;
+                    const daysValEl = card.querySelector('.mc-stat-val-days');
+                    const healthFill = card.querySelector('.mc-progress-fill');
+                    const healthText = card.querySelector('.mc-progress-label');
+
+                    if (currentVal) currentVal.textContent = currentHrsText;
                     if (remainVal) {
-                        const formatHrs = Math.abs(metrics.remainingTotal);
-                        remainVal.textContent = metrics.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
+                        remainVal.textContent = remainText;
+                        remainVal.className = `mc-split-val mc-stat-val-remain ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}`;
                     }
-                    if (daysVal) {
-                        daysVal.textContent = metrics.remainingDaysInfo.formattedText;
+                    if (daysValEl) {
+                        daysValEl.textContent = replaceDaysText;
+                        daysValEl.style.color = crit.remainingTotal < 0 ? 'var(--red)' : '';
                     }
-                    ChartRenderer.updateMiniHealthTrack(healthFill, metrics.lifeRemainingPercent, metrics.status);
-                    if (healthText) healthText.textContent = `Life Remaining: ${metrics.formattedLifeRemaining}`;
+                    if (healthFill) {
+                        healthFill.style.width = `${lifeRemainingPct}%`;
+                        let dotColor = 'var(--green)';
+                        if (metrics.status === 'WARNING') dotColor = 'var(--yellow)';
+                        if (metrics.status === 'ALARM') dotColor = 'var(--red)';
+                        if (metrics.status === 'BASELINE_REQUIRED') dotColor = '#3b82f6';
+                        healthFill.style.background = dotColor;
+                    }
+                    if (healthText) healthText.textContent = lifeRemainingDisplay;
                 }
             });
             return;
@@ -196,7 +219,7 @@ export const DashboardController = {
             },
             {
                 status: 'SAFE',
-                title: 'SAFE',
+                title: 'HEALTHY',
                 desc: 'Normal Operation',
                 color: 'var(--green)',
                 bg: 'rgba(34, 197, 94, 0.12)',
@@ -228,16 +251,16 @@ export const DashboardController = {
 
             group.items.forEach(machine => {
                 const metrics = LaserEngine.calculateMachineMetrics(machine, evalTime);
-                let badgeClass = '', dotColor = '';
+                let badgeClass = '', dotColor = '', statusLabel = '';
 
                 if (metrics.status === 'SAFE') {
-                    badgeClass = 'color-safe'; dotColor = 'var(--green)';
+                    badgeClass = 'color-safe'; dotColor = 'var(--green)'; statusLabel = 'HEALTHY';
                 } else if (metrics.status === 'WARNING') {
-                    badgeClass = 'color-warning'; dotColor = 'var(--yellow)';
+                    badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; statusLabel = 'WARNING';
                 } else if (metrics.status === 'BASELINE_REQUIRED') {
-                    badgeClass = 'color-baseline'; dotColor = '#3b82f6';
+                    badgeClass = 'color-baseline'; dotColor = '#3b82f6'; statusLabel = 'BASELINE';
                 } else {
-                    badgeClass = 'color-alarm'; dotColor = 'var(--red)';
+                    badgeClass = 'color-alarm'; dotColor = 'var(--red)'; statusLabel = 'ALARM';
                 }
 
                 const card = document.createElement('div');
@@ -252,112 +275,48 @@ export const DashboardController = {
                 const crit = metrics.mostCriticalLaser;
                 const formatHrs = Math.abs(crit.remainingTotal);
                 const remainText = crit.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
-                const recalDateStr = crit.lastRecalibrationDate ? formatDate(crit.lastRecalibrationDate) : 'N/A';
-                const limitInfo = crit.recommendedLimitInfo || { daysText: crit.remainingDaysInfo.formattedText, subText: '', isExceeded: crit.isContingencyActive };
+
+                let replaceDaysText = '—';
+                if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
+                    const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
+                    replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d`;
+                }
+
+                const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
                 const lifeRemainingDisplay = crit.isContingencyActive ? '0%' : crit.formattedLifeRemaining;
                 const lifeRemainingPct = crit.isContingencyActive ? 0 : crit.lifeRemainingPercent;
 
-                const alarmBannerHtml = crit.isContingencyActive ? `
-                    <div style="margin-top: 8px; padding: 4px 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--red); border-radius: 4px; color: var(--red); font-size: 11px; font-weight: 800; text-align: center; letter-spacing: 0.3px;">
-                        RECOMMENDED LIFE EXCEEDED
-                    </div>
-                ` : '';
-
-                // Generate Laser Heads Indicator Row (Pills/Dots)
-                const laserPillsHtml = metrics.laserMetricsList.map((lm, idx) => {
-                    let pColor = 'var(--green)';
-                    if (lm.status === 'WARNING') pColor = 'var(--yellow)';
-                    if (lm.status === 'ALARM') pColor = 'var(--red)';
-                    return `<span class="laser-head-pill" title="${lm.name}: ${lm.currentHour} hrs, ${lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining} Life Remaining (${lm.status})">
-                        <span class="laser-pill-dot" style="background:${pColor}; box-shadow: 0 0 6px ${pColor};"></span>
-                        <span class="laser-pill-name">L${idx + 1}</span>
-                    </span>`;
-                }).join('');
-
                 card.innerHTML = `
                     <div class="mc-header">
-                        <div>
-                            <div class="mc-title">${machine.machineName}</div>
-                            <div class="mc-subtitle">
-                                <span class="mc-num-badge">${machine.machineNo}</span> • SN: ${machine.serialNo} • ${machine.department}
-                            </div>
-                        </div>
+                        <div class="mc-title">${machine.machineName || machine.machineNo}</div>
                         <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40;">
                             <div class="mc-led" style="background:${dotColor}; box-shadow: 0 0 8px ${dotColor}"></div>
-                            ${metrics.status}
+                            ${statusLabel}
                         </div>
                     </div>
 
-                    <!-- Laser Heads Status Row -->
-                    <div class="mc-lasers-row">
-                        <span class="mc-lasers-label">${metrics.totalLasers} Laser ${metrics.totalLasers === 1 ? 'Head' : 'Heads'}:</span>
-                        <div class="mc-lasers-pills">${laserPillsHtml}</div>
+                    <div class="mc-primary-hour-box">
+                        <div class="mc-primary-hour">${currentHrsText}</div>
                     </div>
 
-                    <div class="mc-stats">
-                        <div class="mc-stat-item">
-                            <span class="mc-stat-label">Critical: ${crit.name}</span>
-                            <span class="mc-stat-val mc-stat-val-current">${crit.currentHour} hrs</span>
+                    <div class="mc-metrics-split">
+                        <div class="mc-split-item">
+                            <span class="mc-split-label">Remaining</span>
+                            <span class="mc-split-val mc-stat-val-remain ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}">${remainText}</span>
                         </div>
-                        <div class="mc-stat-item">
-                            <span class="mc-stat-label">Remaining Hr</span>
-                            <span class="mc-stat-val mc-stat-val-remain ${badgeClass}">${remainText}</span>
-                        </div>
-                        <div class="mc-stat-item">
-                            <span class="mc-stat-label">Days to Limit</span>
-                            <span class="mc-stat-val mc-stat-val-days" style="font-size:13px; margin-top:2px; ${limitInfo.isExceeded ? 'color:var(--red); font-weight:800;' : ''}">${limitInfo.daysText}</span>
-                            <div style="font-size:11px; color:var(--muted); font-weight:500; margin-top:2px;">${limitInfo.subText}</div>
+                        <div class="mc-split-item">
+                            <span class="mc-split-label">Replace In</span>
+                            <span class="mc-split-val mc-stat-val-days" style="${crit.remainingTotal < 0 ? 'color:var(--red); font-weight:800;' : ''}">${replaceDaysText}</span>
                         </div>
                     </div>
 
-                    ${alarmBannerHtml}
-
-                    <div class="mc-extra-info">
-                        <div>Accuracy: <strong style="color:${crit.accuracy.color}">${crit.accuracy.label}</strong></div>
-                        <div>EOL Date: <strong>${crit.eolDate}</strong></div>
-                        <div>Last Recal: <strong>${recalDateStr}</strong></div>
-                    </div>
-
-                    <div class="mc-footer">
-                        <div style="display:flex; align-items:center; gap:8px;">
-                            <span class="mc-health-text">Life Remaining: <strong>${lifeRemainingDisplay}</strong></span>
-                            <div class="mini-health-track" title="Life Remaining: ${lifeRemainingDisplay}">
-                                <div class="mini-health-fill" style="width: ${lifeRemainingPct}%;"></div>
-                            </div>
+                    <div class="mc-progress-section">
+                        <div class="mc-progress-track">
+                            <div class="mc-progress-fill" style="width: ${lifeRemainingPct}%; background: ${dotColor};"></div>
                         </div>
-                        <div class="mc-card-actions">
-                            <button class="btn-card-action btn-edit-card" title="Edit Machine Properties" data-id="${machine.id}">
-                                <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            </button>
-                            <button class="btn-card-action btn-delete-card" title="Delete Machine" data-id="${machine.id}">
-                                <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--red)"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
-                        </div>
+                        <span class="mc-progress-label">${lifeRemainingDisplay}</span>
                     </div>
                 `;
-
-                const fillEl = card.querySelector('.mini-health-fill');
-                ChartRenderer.updateMiniHealthTrack(fillEl, lifeRemainingPct, crit.status);
-
-                const editBtn = card.querySelector('.btn-edit-card');
-                if (editBtn) {
-                    editBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        if (typeof onEditMachine === 'function') {
-                            onEditMachine(machine.id);
-                        }
-                    };
-                }
-
-                const deleteBtn = card.querySelector('.btn-delete-card');
-                if (deleteBtn) {
-                    deleteBtn.onclick = (e) => {
-                        e.stopPropagation();
-                        if (typeof onDeleteMachine === 'function') {
-                            onDeleteMachine(machine.id);
-                        }
-                    };
-                }
 
                 sectionGrid.appendChild(card);
             });

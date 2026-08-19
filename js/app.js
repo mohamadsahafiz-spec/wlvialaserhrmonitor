@@ -693,9 +693,22 @@ const openReplaceLaserModal = (mId, laserId) => {
         const laser = machine.lasers.find(l => l.id === laserId) || machine.lasers[0];
         if (!laser) return;
 
-        const currentGen = laser.generation || (laser.lifecycleHistory ? laser.lifecycleHistory.length + 1 : 1);
+        const currentGen = laser.generation || (laser.replacementHistory ? laser.replacementHistory.length + 1 : (laser.lifecycleHistory ? laser.lifecycleHistory.length + 1 : 1));
+        const evalTime = getEvalTime();
+        const estHour = LaserEngine.calculateEstimatedHour(laser.baseLaserHour || 0, safeToISOString(laser.baseTimestamp), evalTime);
+        const estDisplay = Math.round(estHour * 10) / 10;
 
-        if (DOM.replModalTitle) DOM.replModalTitle.textContent = `Replace Laser Unit — ${laser.name} (SN: ${laser.serialNo || 'N/A'})`;
+        const titleEl = document.getElementById('repl-laser-title');
+        const serialEl = document.getElementById('repl-laser-serial');
+        const genEl = document.getElementById('repl-laser-current-gen');
+        const targetLaserInput = document.getElementById('repl-target-laser-id');
+
+        if (titleEl) titleEl.textContent = `${laser.name} (${machine.machineName || machine.machineNo})`;
+        if (serialEl) serialEl.textContent = `SN: ${laser.serialNo || 'N/A'} • Active Runtime: ${estDisplay} hrs`;
+        if (genEl) genEl.textContent = `Gen ${currentGen} (Active)`;
+        if (targetLaserInput) targetLaserInput.value = laser.id;
+
+        if (DOM.replModalTitle) DOM.replModalTitle.textContent = `Replace Laser Unit — ${laser.name}`;
         if (DOM.replMachineId) DOM.replMachineId.value = machine.id;
         if (DOM.replLaserId) DOM.replLaserId.value = laser.id;
         if (DOM.replInstalledHour) DOM.replInstalledHour.value = 0;
@@ -1454,6 +1467,86 @@ function setupEventListeners() {
             MachineController.renderSingleDashboard(m, DOM, getEvalTime());
         }
     });
+
+    // Replace Laser Workflow Listeners
+    if (DOM.btnCloseReplaceModal) DOM.btnCloseReplaceModal.addEventListener('click', closeReplaceLaserModal);
+    if (DOM.btnCancelReplaceModal) DOM.btnCancelReplaceModal.addEventListener('click', closeReplaceLaserModal);
+
+    if (DOM.btnSubmitReplaceLaser) {
+        DOM.btnSubmitReplaceLaser.addEventListener('click', () => {
+            const machine = AppState.machines.find(m => m.id === AppState.currentMachineId);
+            if (!machine || !Array.isArray(machine.lasers)) return;
+
+            const targetId = document.getElementById('repl-target-laser-id') ? document.getElementById('repl-target-laser-id').value : (DOM.replLaserId ? DOM.replLaserId.value : '');
+            const laser = machine.lasers.find(l => l.id === targetId) || machine.lasers[0];
+            if (!laser) return;
+
+            const installedHourInput = DOM.replInstalledHour ? DOM.replInstalledHour.value : '0';
+            const newBaselineHour = installedHourInput !== '' && !isNaN(Number(installedHourInput)) ? Math.max(0, Number(installedHourInput)) : 0;
+            const installTsInput = DOM.replInstallTimestamp ? DOM.replInstallTimestamp.value : '';
+            const installDate = installTsInput ? safeToISOString(installTsInput, new Date().toISOString()) : new Date().toISOString();
+            const engineerName = DOM.replEngineerName ? DOM.replEngineerName.value.trim() : 'Optics Specialist';
+            const reason = DOM.replReason ? DOM.replReason.value : 'End-of-Life Reached (Rated Limit)';
+            const notes = DOM.replNotes ? DOM.replNotes.value.trim() : '';
+
+            const evalTime = new Date(installDate);
+            const prevEstHour = LaserEngine.calculateEstimatedHour(laser.baseLaserHour || 0, safeToISOString(laser.baseTimestamp), evalTime);
+            const currentGen = laser.generation || (laser.replacementHistory ? laser.replacementHistory.length + 1 : (laser.lifecycleHistory ? laser.lifecycleHistory.length + 1 : 1));
+
+            if (!Array.isArray(laser.replacementHistory)) {
+                laser.replacementHistory = Array.isArray(laser.lifecycleHistory) ? [...laser.lifecycleHistory] : [];
+            }
+
+            const replacementRecord = {
+                id: `REPL-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+                generation: currentGen,
+                replacementDate: installDate,
+                previousRuntime: Math.round(prevEstHour * 10) / 10,
+                newBaselineHours: newBaselineHour,
+                engineer: engineerName || 'Optics Specialist',
+                reason: reason,
+                notes: notes
+            };
+
+            laser.replacementHistory.unshift(replacementRecord);
+            laser.lifecycleHistory = laser.replacementHistory; // Backward compatibility
+
+            laser.generation = currentGen + 1;
+            laser.baseLaserHour = newBaselineHour;
+            laser.baseTimestamp = installDate;
+            laser.installedDate = installDate;
+            laser.installedBy = engineerName || 'Optics Specialist';
+            laser.lastRecalibrationDate = installDate;
+
+            // Log to machine maintenance history
+            if (!Array.isArray(machine.maintenanceHistory)) machine.maintenanceHistory = [];
+            machine.maintenanceHistory.unshift({
+                id: `MAINT-${Date.now()}`,
+                date: installDate,
+                engineer: engineerName || 'Optics Specialist',
+                action: `Replaced ${laser.name} (Gen ${currentGen} → Gen ${laser.generation})`,
+                notes: `Reset baseline to ${newBaselineHour} hrs. Previous runtime: ${Math.round(prevEstHour)} hrs. Reason: ${reason}. ${notes ? `Notes: ${notes}` : ''}`
+            });
+
+            StorageService.saveMachine(machine);
+            AppState.machines = StorageService.loadMachines();
+
+            closeReplaceLaserModal();
+            UI.showToast(`Successfully replaced ${laser.name} (Now Gen ${laser.generation}) ✓`, 'success');
+
+            const currentEval = getEvalTime();
+            MachineController.renderMaintenanceLog(machine, DOM.maintTbody);
+            MachineController.renderSingleDashboard(machine, DOM, currentEval, false, getMachineCallbacks());
+
+            if (DOM.fleetGrid) {
+                DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, currentEval, handleMachineSelect, handleEditMachine, handleDeleteMachine);
+            }
+
+            window.dispatchEvent(new CustomEvent('lms-fleet-updated', {
+                detail: { count: AppState.machines.length }
+            }));
+        });
+    }
 
     // Global Header Action Buttons
     if (DOM.btnTheme) DOM.btnTheme.addEventListener('click', () => {

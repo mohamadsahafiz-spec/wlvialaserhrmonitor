@@ -75,15 +75,6 @@
         ===================================================== -->
         <section id="view-fleet" class="fleet-view">
 
-            <!-- Laser Beam Animation Band -->
-            <div id="lms-beam-container" style="position:relative; width:100%; height:75px; overflow:visible; margin-bottom:16px; background:transparent; pointer-events:none;">
-                <svg id="lms-beam-svg" style="position:absolute; left:0; width:100%; display:block; pointer-events:none;">
-                    <defs id="lms-beam-defs">
-                        <filter id="lms-blurGlow"><feGaussianBlur stdDeviation="6"/></filter>
-                    </defs>
-                </svg>
-            </div>
-
             <!-- Compact Fleet Status Panel -->
             <div id="fleet-stats-panel" class="fleet-status-compact-panel glass-panel" style="margin-bottom: 20px;">
                 <div class="fsc-metrics">
@@ -250,7 +241,19 @@
                         <div class="mach-title-block">
                             <div class="mach-breadcrumb">Fleet Overview / <span id="mach-header-num">WD-101</span></div>
                             <h2 id="mach-header-name">Wafer Driller #101</h2>
-                            <div id="mach-header-model" class="mach-sub-meta">BMD302W • SN: BMD3-9021</div>
+                            <div class="mach-meta-row">
+                                <span id="mach-header-model" class="mach-sub-meta">BMD302W • SN: BMD3-9021</span>
+                                <span class="meta-divider">•</span>
+                                <div class="mach-crit-header-pill" title="Critical Laser Head in Unit">
+                                    <span class="crit-tag">Critical:</span>
+                                    <strong id="hero-crit-name">Laser Head 1</strong>
+                                    <span id="hero-crit-serial" class="crit-sn">SN: --</span>
+                                    <div id="hero-crit-status-badge" class="mc-status-badge color-safe" style="padding:2px 8px; font-size:11px;">
+                                        <div id="hero-crit-status-led" class="mc-led bg-safe led-solid" style="width:7px;height:7px;"></div>
+                                        <span id="hero-crit-status-text">SAFE</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -353,21 +356,7 @@
                             </div>
                         </div>
 
-                        <!-- Primary KPI Dashboard Header & Cards (Mapped to Most Critical Laser) -->
-                        <div id="crit-laser-hero-bar" class="glass-panel" style="margin-bottom: 14px; padding: 12px 18px; border-radius: 12px; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--primary);">
-                            <div style="display: flex; align-items: center; gap: 12px;">
-                                <span class="badge badge-info" style="font-weight: 800; font-size: 11px; letter-spacing: 0.5px;">MOST CRITICAL LASER</span>
-                                <div style="font-size: 14px; font-weight: 700; color: var(--text);">
-                                    <span id="hero-crit-name">Laser Head 1</span>
-                                    <span id="hero-crit-serial" style="color: var(--muted); font-weight: 500; margin-left: 8px;">SN: --</span>
-                                </div>
-                            </div>
-                            <div id="hero-crit-status-badge" class="mc-status-badge color-safe" style="font-size: 12px;">
-                                <div id="hero-crit-status-led" class="mc-led bg-safe led-solid"></div>
-                                <span id="hero-crit-status-text">SAFE</span>
-                            </div>
-                        </div>
-
+                        <!-- Compressed Summary KPI Cards (Mapped to Critical Laser) -->
                         <div class="mach-kpi-grid">
                             <div class="mach-kpi-card glass-panel">
                                 <div class="kpi-header">
@@ -1135,8 +1124,6 @@
         </div>
     </div>
 
-    <!-- Laser Beam Animation Script -->
-    <script src="js/beam-animation.js"></script>
     <!-- ES6 Application Script -->
     <script type="module" src="js/app.js"></script>
 </body>
