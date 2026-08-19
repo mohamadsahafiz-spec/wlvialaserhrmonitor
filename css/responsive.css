@@ -1,0 +1,174 @@
+/* =====================================================
+   RESPONSIVE.CSS - Mobile, Laptop, PC, iOS & Android Support
+   ===================================================== */
+
+/* iOS SAFE AREA & TOUCH OPTIMIZATIONS */
+:root {
+    --sat: env(safe-area-inset-top, 0px);
+    --sar: env(safe-area-inset-right, 0px);
+    --sab: env(safe-area-inset-bottom, 0px);
+    --sal: env(safe-area-inset-left, 0px);
+}
+
+body {
+    padding-top: var(--sat);
+    padding-bottom: var(--sab);
+    padding-left: var(--sal);
+    padding-right: var(--sar);
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+}
+
+/* WIDESCREEN & DESKTOP PC / MAC (1920px and above) */
+@media (min-width: 1920px) {
+    .app-container {
+        max-width: 1880px;
+        padding: 32px 40px;
+    }
+    .fleet-grid {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 28px;
+    }
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 24px;
+    }
+    .mainGrid {
+        grid-template-columns: 420px 1fr;
+        gap: 32px;
+    }
+}
+
+/* LAPTOP & MEDIUM DESKTOP (1600px - 1919px) */
+@media (min-width: 1600px) and (max-width: 1919px) {
+    .app-container {
+        max-width: 1560px;
+        padding: 28px 32px;
+    }
+    .fleet-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+    }
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+/* LAPTOP & MACBOOK (1366px - 1599px) */
+@media (min-width: 1366px) and (max-width: 1599px) {
+    .app-container {
+        max-width: 1320px;
+        padding: 24px 28px;
+    }
+    .fleet-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+}
+
+/* TABLET & SMALL LAPTOP (768px - 1365px) */
+@media (min-width: 768px) and (max-width: 1365px) {
+    .app-container {
+        padding: 20px 24px;
+    }
+    .mainGrid {
+        grid-template-columns: 1fr;
+        gap: 24px;
+    }
+    .fleet-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+}
+
+/* MOBILE PHONES (iOS / Android <= 767px) */
+@media (max-width: 767px) {
+    body {
+        padding: 12px 10px;
+    }
+    .app-header {
+        padding: 14px 16px;
+        margin-bottom: 16px;
+    }
+    .app-container {
+        padding: 12px 10px;
+    }
+    .header-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 14px;
+    }
+    .brand {
+        justify-content: flex-start;
+    }
+    .brand h1 {
+        font-size: 18px;
+    }
+    .nav-links {
+        width: 100%;
+        justify-content: space-around;
+    }
+    .nav-item, .nav-link {
+        flex: 1;
+        justify-content: center;
+        padding: 10px 8px;
+        font-size: 12px;
+        min-height: 44px; /* Touch target minimum */
+    }
+    .header-controls {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+    .dashboard-stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 16px;
+    }
+    .fleet-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+    .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 14px;
+        gap: 12px;
+    }
+    .filter-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    .filter-group .input-control, .search-box input {
+        min-height: 44px;
+    }
+    .btn, .mc-btn {
+        min-height: 44px; /* Apple iOS & Android 44px touch rule */
+        font-size: 14px;
+    }
+    .toolbar .btn {
+        margin-left: 0 !important;
+        width: 100%;
+        justify-content: center;
+    }
+    .mc-stats {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+}
+
+/* PRINT STYLES */
+@media print {
+    body { background: white !important; color: black !important; padding: 0; }
+    body::before, body::after { display: none !important; }
+    .glass-panel { background: white !important; backdrop-filter: none !important; box-shadow: none !important; border: 1px solid #ccc !important; }
+    .app-container { padding: 0; }
+    .btn, .toolbar, .back-btn, .nav-links { display: none !important; }
+    .mainGrid { grid-template-columns: 300px 1fr; }
+    .value, .statusText { color: black !important; text-shadow: none !important; }
+}

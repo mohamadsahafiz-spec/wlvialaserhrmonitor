@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <rect width="512" height="512" rx="110" fill="#0f172a"/>
+  <rect x="32" y="32" width="448" height="448" rx="90" fill="none" stroke="#1e293b" stroke-width="12"/>
+  <!-- Glowing Hexagon / Beam Grid Background -->
+  <circle cx="256" cy="256" r="180" fill="#38bdf8" fill-opacity="0.08"/>
+  <circle cx="256" cy="256" r="130" fill="#38bdf8" fill-opacity="0.12"/>
+  <!-- Laser Diode Core Beam -->
+  <polygon points="276 40 106 290 256 290 236 472 406 222 256 222 276 40" fill="#38bdf8"/>
+  <polygon points="276 40 106 290 256 290 236 472 406 222 256 222 276 40" fill="none" stroke="#e0f2fe" stroke-width="8" stroke-linejoin="round"/>
+  <!-- Precision Reticle Target Cross -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#38bdf8" stroke-width="4" stroke-dasharray="16 12" opacity="0.6"/>
+  <line x1="256" y1="24" x2="256" y2="72" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="256" y1="440" x2="256" y2="488" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="24" y1="256" x2="72" y2="256" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+  <line x1="440" y1="256" x2="488" y2="256" stroke="#38bdf8" stroke-width="6" stroke-linecap="round"/>
+</svg>

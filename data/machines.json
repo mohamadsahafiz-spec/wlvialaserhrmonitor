@@ -1,0 +1,229 @@
+[
+  {
+    "id": "WD-101-ID",
+    "machineNo": "WD-101",
+    "machineName": "Wafer Driller BMD302W",
+    "serialNo": "BMD3-9021",
+    "manufacturer": "SemiconTech",
+    "model": "BMD302W",
+    "department": "Wafer Prep",
+    "lasers": [
+      {
+        "id": "WD-101-L1",
+        "name": "Laser Head 1",
+        "serialNo": "BMD3-9021-L1",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 12500,
+        "baseTimestamp": "2026-06-28T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-06-28T00:00:00.000Z",
+        "calibrationHistory": [
+          {
+            "date": "2026-06-28T00:00:00.000Z",
+            "estimatedHour": 12490,
+            "actualHour": 12500,
+            "difference": 10,
+            "reason": "Scheduled PM",
+            "rating": "★★★★★ Excellent"
+          }
+        ]
+      },
+      {
+        "id": "WD-101-L2",
+        "name": "Laser Head 2",
+        "serialNo": "BMD3-9021-L2",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 20500,
+        "baseTimestamp": "2026-06-28T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-06-28T00:00:00.000Z",
+        "calibrationHistory": []
+      }
+    ],
+    "maintenanceHistory": [
+      {
+        "date": "2026-03-30",
+        "engineer": "J. Smith",
+        "action": "Lens Clean",
+        "notes": "Routine check"
+      },
+      {
+        "date": "2026-05-29",
+        "engineer": "M. Doe",
+        "action": "Filter Replace",
+        "notes": "Dust accumulation high"
+      }
+    ],
+    "lastUpdated": "2026-07-28T00:00:00.000Z"
+  },
+  {
+    "id": "WD-102-ID",
+    "machineNo": "WD-102",
+    "machineName": "Wafer Driller BMD250WM",
+    "serialNo": "BMD2-40401",
+    "manufacturer": "SemiconTech",
+    "model": "BMD250WM",
+    "department": "Packaging",
+    "lasers": [
+      {
+        "id": "WD-102-L1",
+        "name": "Laser Head 1",
+        "serialNo": "BMD2-40401-L1",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 19800,
+        "baseTimestamp": "2026-06-13T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-06-13T00:00:00.000Z",
+        "calibrationHistory": [
+          {
+            "date": "2026-06-13T00:00:00.000Z",
+            "estimatedHour": 19780,
+            "actualHour": 19800,
+            "difference": 20,
+            "reason": "Manual Verification",
+            "rating": "★★★★☆ Very Good"
+          }
+        ]
+      },
+      {
+        "id": "WD-102-L2",
+        "name": "Laser Head 2",
+        "serialNo": "BMD2-40401-L2",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 14200,
+        "baseTimestamp": "2026-06-13T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-06-13T00:00:00.000Z",
+        "calibrationHistory": []
+      },
+      {
+        "id": "WD-102-L3",
+        "name": "Laser Head 3",
+        "serialNo": "BMD2-40401-L3",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 8900,
+        "baseTimestamp": "2026-06-13T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-06-13T00:00:00.000Z",
+        "calibrationHistory": []
+      }
+    ],
+    "maintenanceHistory": [
+      {
+        "date": "2026-05-19",
+        "engineer": "T. Stark",
+        "action": "Calibration",
+        "notes": "Beam alignment drift corrected"
+      }
+    ],
+    "lastUpdated": "2026-07-28T00:00:00.000Z"
+  },
+  {
+    "id": "WD-201-ID",
+    "machineNo": "WD-201",
+    "machineName": "Wafer Driller BMD302W",
+    "serialNo": "BMD3-8832",
+    "manufacturer": "SemiconTech",
+    "model": "BMD302W",
+    "department": "R&D",
+    "lasers": [
+      {
+        "id": "WD-201-L1",
+        "name": "Laser Head 1",
+        "serialNo": "BMD3-8832-L1",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 24500,
+        "baseTimestamp": "2026-04-24T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-04-24T00:00:00.000Z",
+        "calibrationHistory": [
+          {
+            "date": "2026-04-24T00:00:00.000Z",
+            "estimatedHour": 24450,
+            "actualHour": 24500,
+            "difference": 50,
+            "reason": "Breakdown",
+            "rating": "★★★☆☆ Good"
+          }
+        ]
+      },
+      {
+        "id": "WD-201-L2",
+        "name": "Laser Head 2",
+        "serialNo": "BMD3-8832-L2",
+        "ratedLife": 25000,
+        "warningLife": 20000,
+        "baseLaserHour": 18100,
+        "baseTimestamp": "2026-04-24T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-04-24T00:00:00.000Z",
+        "calibrationHistory": []
+      }
+    ],
+    "maintenanceHistory": [
+      {
+        "date": "2026-01-09",
+        "engineer": "B. Banner",
+        "action": "Diode Module 1 Replace",
+        "notes": "Power drop detected"
+      }
+    ],
+    "lastUpdated": "2026-07-28T00:00:00.000Z"
+  },
+  {
+    "id": "WD-305-ID",
+    "machineNo": "WD-305",
+    "machineName": "Wafer Driller BMD250WM",
+    "serialNo": "BMD2-771",
+    "manufacturer": "SemiconTech",
+    "model": "BMD250WM",
+    "department": "Wafer Prep",
+    "lasers": [
+      {
+        "id": "WD-305-L1",
+        "name": "Laser Head 1",
+        "serialNo": "BMD2-771-L1",
+        "ratedLife": 20000,
+        "warningLife": 15000,
+        "baseLaserHour": 2500,
+        "baseTimestamp": "2026-07-18T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-07-18T00:00:00.000Z",
+        "calibrationHistory": []
+      },
+      {
+        "id": "WD-305-L2",
+        "name": "Laser Head 2",
+        "serialNo": "BMD2-771-L2",
+        "ratedLife": 20000,
+        "warningLife": 15000,
+        "baseLaserHour": 3100,
+        "baseTimestamp": "2026-07-18T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-07-18T00:00:00.000Z",
+        "calibrationHistory": []
+      },
+      {
+        "id": "WD-305-L3",
+        "name": "Laser Head 3",
+        "serialNo": "BMD2-771-L3",
+        "ratedLife": 20000,
+        "warningLife": 15000,
+        "baseLaserHour": 1800,
+        "baseTimestamp": "2026-07-18T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-07-18T00:00:00.000Z",
+        "calibrationHistory": []
+      },
+      {
+        "id": "WD-305-L4",
+        "name": "Laser Head 4",
+        "serialNo": "BMD2-771-L4",
+        "ratedLife": 20000,
+        "warningLife": 15000,
+        "baseLaserHour": 2900,
+        "baseTimestamp": "2026-07-18T00:00:00.000Z",
+        "lastRecalibrationDate": "2026-07-18T00:00:00.000Z",
+        "calibrationHistory": []
+      }
+    ],
+    "maintenanceHistory": [],
+    "lastUpdated": "2026-07-28T00:00:00.000Z"
+  }
+]

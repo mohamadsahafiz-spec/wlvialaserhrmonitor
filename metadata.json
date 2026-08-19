@@ -1,0 +1,8 @@
+{
+  "name": "Laser Management System",
+  "description": "Laser Management System Version 1.0 - SCADA operating hour tracking, lifetime estimation, and recalibration management system.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

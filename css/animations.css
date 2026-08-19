@@ -1,0 +1,105 @@
+/* =====================================================
+   ANIMATIONS.CSS - Status Glows, LED Blinks & Modals
+   ===================================================== */
+.color-safe { color: var(--green) !important; text-shadow: 0 0 18px rgba(52,211,153,.35); }
+.color-warning { color: var(--yellow) !important; text-shadow: 0 0 18px rgba(251,191,36,.35); }
+.color-alarm { color: var(--red) !important; text-shadow: 0 0 18px rgba(248,113,113,.45); }
+.color-baseline { color: #3b82f6 !important; text-shadow: 0 0 18px rgba(59,130,246,.35); }
+
+.bg-safe { background-color: var(--green) !important; box-shadow: 0 0 8px var(--green); }
+.bg-warning { background-color: var(--yellow) !important; box-shadow: 0 0 8px var(--yellow); }
+.bg-alarm { background-color: var(--red) !important; box-shadow: 0 0 8px var(--red); }
+.bg-baseline { background-color: #3b82f6 !important; box-shadow: 0 0 8px #3b82f6; }
+
+.glow-safe { box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 15px rgba(52,211,153,.15) !important; border-color: rgba(52,211,153,.4) !important; }
+.glow-warning { box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 15px rgba(251,191,36,.15) !important; border-color: rgba(251,191,36,.4) !important; }
+.glow-alarm { box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 15px rgba(248,113,113,.15) !important; border-color: rgba(248,113,113,.4) !important; }
+.glow-baseline { box-shadow: 0 8px 32px rgba(0,0,0,.3), inset 0 0 15px rgba(59,130,246,.15) !important; border-color: rgba(59,130,246,.4) !important; }
+
+.led { width: 12px; height: 12px; border-radius: 50%; display: inline-block; transition: background-color 0.3s ease; }
+.blink-slow { animation: blink-slow 1.2s infinite ease-in-out !important; }
+.blink-fast { animation: blink-fast 0.5s infinite ease-in-out !important; }
+.led-solid { animation: none !important; }
+
+@keyframes blink-slow { 0%, 100% { opacity: 1; box-shadow: 0 0 10px currentColor; } 50% { opacity: 0.2; box-shadow: none; } }
+@keyframes blink-fast { 0%, 100% { opacity: 1; box-shadow: 0 0 10px currentColor; } 50% { opacity: 0.2; box-shadow: none; } }
+
+/* MODAL OVERLAYS */
+.modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    z-index: 1000; display: flex; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+}
+.modal-overlay.active { opacity: 1; pointer-events: all; }
+
+.modal-content {
+    width: 90%; max-width: 520px; padding: 30px;
+    transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); opacity: 0;
+}
+.modal-overlay.active .modal-content { transform: translateY(0) scale(1); opacity: 1; }
+
+.modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.modal-header h3 { font-size: 20px; font-weight: 700; }
+.btn-close { background: none; border: none; color: var(--muted); font-size: 28px; cursor: pointer; line-height: 1; transition: color 0.2s; }
+.btn-close:hover { color: var(--text); }
+.modal-body { display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; }
+
+.info-card {
+    background: var(--input-bg); padding: 14px 18px; border-radius: 10px; border: 1px solid var(--glass-border);
+    display: flex; justify-content: space-between; align-items: center;
+}
+
+/* TOAST NOTIFICATIONS SYSTEM */
+#toast-container {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+
+.toast {
+    pointer-events: auto;
+    min-width: 280px;
+    max-width: 420px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    background: var(--panel-bg);
+    border: 1px solid var(--glass-border);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    color: var(--text);
+    font-size: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    border-left: 4px solid var(--primary);
+}
+
+.toast.toast-success { border-left-color: var(--green); }
+.toast.toast-warning { border-left-color: var(--yellow); }
+.toast.toast-error { border-left-color: var(--red); }
+.toast.toast-info { border-left-color: var(--primary); }
+
+.toast.toast-out {
+    animation: toast-out 0.25s ease forwards;
+}
+
+@keyframes toast-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.95); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes toast-out {
+    from { opacity: 1; transform: translateY(0); }
+    to { opacity: 0; transform: translateY(10px); }
+}
+
