@@ -4,51 +4,52 @@
    ===================================================== */
 :root {
     /* -----------------------------------------------------
-       1. COLOR SYSTEM - DARK THEME (COMMAND CENTER DEFAULT)
+       1. COLOR SYSTEM - INDUSTRIAL NEUTRAL PALETTE (CHARCOAL, GRAPHITE, GUNMETAL)
+          95% Neutral, 5% Semantic Accent
        ----------------------------------------------------- */
-    --color-bg-base: #0b0f19;
-    --color-bg-surface: #111827;
-    --color-bg-surface-elevated: #1e293b;
-    --color-bg-surface-hover: #1e293b;
-    --color-bg-input: #090d16;
+    --color-bg-base: #0c0e12;             /* Deep matte obsidian / industrial canvas */
+    --color-bg-surface: #14171d;          /* Primary Surface (Graphite) */
+    --color-bg-surface-elevated: #1c212a; /* Elevated Surface / Control (Gunmetal) */
+    --color-bg-surface-hover: #222833;    /* Interactive hover state */
+    --color-bg-input: #0a0c0f;            /* Recessed well / telemetry track */
     
-    --color-border-subtle: #1e293b;
-    --color-border-base: #1e293b;
-    --color-border-highlight: #334155;
-    --color-border-focus: #38bdf8;
+    --color-border-subtle: rgba(255, 255, 255, 0.04);
+    --color-border-base: rgba(255, 255, 255, 0.08);
+    --color-border-highlight: rgba(255, 255, 255, 0.16);
+    --color-border-focus: #00d8f6;
     
-    --color-text-primary: #f8fafc;
-    --color-text-secondary: #94a3b8;
-    --color-text-muted: #64748b;
-    --color-text-inverse: #0b0f19;
+    --color-text-primary: #f1f5f9;
+    --color-text-secondary: #8b98a9;
+    --color-text-muted: #5a6677;
+    --color-text-inverse: #0a0c0f;
     
-    /* Semantic Status & Brand */
-    --color-primary: #38bdf8; /* Steel Cyan */
-    --color-primary-hover: #0ea5e9;
-    --color-primary-subtle: rgba(56, 189, 248, 0.12);
-    --color-primary-border: rgba(56, 189, 248, 0.3);
+    /* Semantic Status - Accents used ONLY when meaningful (5%) */
+    --color-primary: #00d8f6;            /* Laser Precision Cyan */
+    --color-primary-hover: #06b6d4;
+    --color-primary-subtle: rgba(0, 216, 246, 0.08);
+    --color-primary-border: rgba(0, 216, 246, 0.25);
     
-    --color-safe: #10b981; /* Industrial Emerald */
+    --color-safe: #10b981;               /* Muted Green / Nominal */
     --color-safe-hover: #059669;
-    --color-safe-subtle: rgba(16, 185, 129, 0.12);
-    --color-safe-border: rgba(16, 185, 129, 0.3);
+    --color-safe-subtle: rgba(16, 185, 129, 0.08);
+    --color-safe-border: rgba(16, 185, 129, 0.25);
     
-    --color-warning: #f59e0b; /* Industrial Amber */
+    --color-warning: #f59e0b;            /* Industrial Amber / Threshold */
     --color-warning-hover: #d97706;
-    --color-warning-subtle: rgba(245, 158, 11, 0.12);
-    --color-warning-border: rgba(245, 158, 11, 0.3);
+    --color-warning-subtle: rgba(245, 158, 11, 0.08);
+    --color-warning-border: rgba(245, 158, 11, 0.25);
     
-    --color-alarm: #ef4444; /* Industrial Crimson */
-    --color-alarm-hover: #dc2626;
-    --color-alarm-subtle: rgba(239, 68, 68, 0.12);
-    --color-alarm-border: rgba(239, 68, 68, 0.3);
+    --color-alarm: #f43f5e;              /* Engineering Red / Contingency */
+    --color-alarm-hover: #e11d48;
+    --color-alarm-subtle: rgba(244, 63, 94, 0.08);
+    --color-alarm-border: rgba(244, 63, 94, 0.3);
     
-    --color-purple: #a855f7; /* Maintenance / Lifecycle */
-    --color-purple-subtle: rgba(168, 85, 247, 0.12);
-    --color-purple-border: rgba(168, 85, 247, 0.3);
+    --color-purple: #a855f7;             /* Recalibration / Maintenance */
+    --color-purple-subtle: rgba(168, 85, 247, 0.08);
+    --color-purple-border: rgba(168, 85, 247, 0.25);
     
     /* -----------------------------------------------------
-       2. TYPOGRAPHY SYSTEM
+       2. TYPOGRAPHY SYSTEM (ENGINEERING AUTHORITY)
        ----------------------------------------------------- */
     --font-sans: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -62,9 +63,9 @@
     --font-size-xl: 16px;
     --font-size-2xl: 18px;
     --font-size-3xl: 20px;
-    --font-size-4xl: 26px;
-    --font-size-5xl: 30px;
-    --font-size-6xl: 36px;
+    --font-size-4xl: 28px;
+    --font-size-5xl: 32px;
+    --font-size-6xl: 38px;
     
     --font-weight-regular: 400;
     --font-weight-medium: 500;
@@ -79,11 +80,11 @@
     --line-height-relaxed: 1.6;
     
     --tracking-tighter: -0.6px;
-    --tracking-tight: -0.2px;
+    --tracking-tight: -0.3px;
     --tracking-normal: 0px;
     --tracking-wide: 0.5px;
     --tracking-wider: 0.8px;
-    --tracking-widest: 1.2px;
+    --tracking-widest: 1.4px;
     
     /* -----------------------------------------------------
        3. 8-POINT APPLE SPACING SYSTEM
@@ -103,21 +104,23 @@
     /* -----------------------------------------------------
        4. CORNER RADIUS TOKENS (MATHEMATICAL NESTING)
        ----------------------------------------------------- */
-    --radius-xs: 4px;
-    --radius-sm: 6px;
+    --radius-xs: 3px;
+    --radius-sm: 5px;
     --radius-md: 8px;
-    --radius-lg: 12px;
-    --radius-xl: 16px;
+    --radius-lg: 10px;
+    --radius-xl: 14px;
     --radius-pill: 999px;
     
     /* -----------------------------------------------------
-       5. ELEVATION & SHADOW TOKENS
+       5. ELEVATION & MACHINED SURFACE HIGHLIGHT TOKENS
+          Layered physical lighting: Key shadow + diffuse ambient + top bevel highlight
        ----------------------------------------------------- */
     --elevation-0: none;
-    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.3), 0 1px 2px -1px rgba(0, 0, 0, 0.2);
-    --elevation-2: 0 4px 12px -2px rgba(0, 0, 0, 0.35), 0 2px 6px -1px rgba(0, 0, 0, 0.2);
-    --elevation-3: 0 12px 28px -4px rgba(0, 0, 0, 0.45), 0 6px 14px -2px rgba(0, 0, 0, 0.25);
-    --elevation-4: 0 20px 48px -4px rgba(0, 0, 0, 0.55), 0 10px 24px -2px rgba(0, 0, 0, 0.3);
+    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.45), 0 1px 1px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+    --elevation-2: 0 4px 12px -2px rgba(0, 0, 0, 0.55), 0 2px 4px 0 rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    --elevation-3: 0 10px 24px -4px rgba(0, 0, 0, 0.65), 0 4px 8px -2px rgba(0, 0, 0, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    --elevation-4: 0 20px 48px -8px rgba(0, 0, 0, 0.8), 0 8px 16px -4px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    --elevation-recessed: inset 0 1px 3px 0 rgba(0, 0, 0, 0.5), inset 0 0 0 1px rgba(0, 0, 0, 0.3), 0 1px 0 0 rgba(255, 255, 255, 0.03);
     
     /* -----------------------------------------------------
        6. ICON SIZING TOKENS
@@ -130,11 +133,11 @@
     --icon-2xl: 24px;
     
     /* -----------------------------------------------------
-       7. MOTION & TRANSITIONS
+       7. MOTION & TRANSITIONS (PRECISE 120ms-180ms LINEAR & INDUSTRIAL EASING)
        ----------------------------------------------------- */
-    --transition-fast: all 0.12s ease;
-    --transition-base: all 0.18s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-smooth: all 0.24s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-fast: all 0.12s ease-out;
+    --transition-base: all 0.15s cubic-bezier(0.2, 0, 0, 1);
+    --transition-smooth: all 0.18s cubic-bezier(0.2, 0, 0, 1);
     --transition: var(--transition-base);
     
     /* -----------------------------------------------------
@@ -170,54 +173,54 @@
 
 [data-theme="light"] {
     /* -----------------------------------------------------
-       LIGHT THEME - INDUSTRIAL LAB SURFACE
+       LIGHT THEME - INDUSTRIAL PRECISION LAB SURFACE
        ----------------------------------------------------- */
-    --color-bg-base: #f1f5f9;
+    --color-bg-base: #f0f2f5;
     --color-bg-surface: #ffffff;
-    --color-bg-surface-elevated: #f8fafc;
-    --color-bg-surface-hover: #f8fafc;
-    --color-bg-input: #f8fafc;
+    --color-bg-surface-elevated: #e6ebf1;
+    --color-bg-surface-hover: #e0e6ee;
+    --color-bg-input: #f4f6f9;
     
-    --color-border-subtle: #e2e8f0;
-    --color-border-base: #cbd5e1;
-    --color-border-highlight: #94a3b8;
-    --color-border-focus: #0284c7;
+    --color-border-subtle: #e5e9f0;
+    --color-border-base: #d2d8e2;
+    --color-border-highlight: #a2adb9;
+    --color-border-focus: #0891b2;
     
-    --color-text-primary: #0f172a;
-    --color-text-secondary: #64748b;
-    --color-text-muted: #94a3b8;
+    --color-text-primary: #111827;
+    --color-text-secondary: #5e6b7d;
+    --color-text-muted: #8b98a9;
     --color-text-inverse: #ffffff;
     
-    --color-primary: #0284c7;
-    --color-primary-hover: #0369a1;
-    --color-primary-subtle: rgba(2, 132, 199, 0.1);
-    --color-primary-border: rgba(2, 132, 199, 0.25);
+    --color-primary: #0891b2;
+    --color-primary-hover: #0e7490;
+    --color-primary-subtle: rgba(8, 145, 178, 0.08);
+    --color-primary-border: rgba(8, 145, 178, 0.25);
     
     --color-safe: #059669;
     --color-safe-hover: #047857;
-    --color-safe-subtle: rgba(5, 150, 105, 0.1);
+    --color-safe-subtle: rgba(5, 150, 105, 0.08);
     --color-safe-border: rgba(5, 150, 105, 0.25);
     
     --color-warning: #d97706;
     --color-warning-hover: #b45309;
-    --color-warning-subtle: rgba(217, 119, 6, 0.1);
+    --color-warning-subtle: rgba(217, 119, 6, 0.08);
     --color-warning-border: rgba(217, 119, 6, 0.25);
     
-    --color-alarm: #dc2626;
-    --color-alarm-hover: #b91c1c;
-    --color-alarm-subtle: rgba(220, 38, 38, 0.1);
-    --color-alarm-border: rgba(220, 38, 38, 0.25);
+    --color-alarm: #e11d48;
+    --color-alarm-hover: #be123c;
+    --color-alarm-subtle: rgba(225, 29, 72, 0.08);
+    --color-alarm-border: rgba(225, 29, 72, 0.25);
     
     --color-purple: #9333ea;
-    --color-purple-subtle: rgba(147, 51, 234, 0.1);
+    --color-purple-subtle: rgba(147, 51, 234, 0.08);
     --color-purple-border: rgba(147, 51, 234, 0.25);
     
-    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-    --elevation-2: 0 4px 12px -2px rgba(0, 0, 0, 0.12), 0 2px 6px -1px rgba(0, 0, 0, 0.06);
-    --elevation-3: 0 12px 24px -4px rgba(0, 0, 0, 0.16), 0 6px 12px -2px rgba(0, 0, 0, 0.08);
-    --elevation-4: 0 20px 48px -4px rgba(15, 23, 42, 0.18), 0 10px 20px -2px rgba(15, 23, 42, 0.1);
+    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+    --elevation-2: 0 4px 10px -2px rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+    --elevation-3: 0 10px 22px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+    --elevation-4: 0 18px 36px -6px rgba(17, 24, 39, 0.16), 0 6px 12px -2px rgba(17, 24, 39, 0.08), inset 0 1px 0 0 #ffffff;
+    --elevation-recessed: inset 0 1px 2px 0 rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 0 0 #ffffff;
     
-    /* Legacy aliases for light theme */
     --bg-body: var(--color-bg-base);
     --bg-surface: var(--color-bg-surface);
     --bg-surface-elevated: var(--color-bg-surface-elevated);
@@ -266,21 +269,28 @@ body {
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* Architectural grid pattern background (Restrained Industrial Canvas) */
+/* Architectural grid pattern background (Dual-Scale Engineering Datum Canvas) */
 body::before {
     content: '';
     position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vh;
-    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.015) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(255, 255, 255, 0.015) 1px, transparent 1px);
-    background-size: 32px 32px;
+    background-image: 
+        linear-gradient(to right, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.012) 1px, transparent 1px),
+        linear-gradient(to right, rgba(255, 255, 255, 0.028) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.028) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
     z-index: -1;
     pointer-events: none;
 }
 
 [data-theme="light"] body::before {
-    background-image: linear-gradient(to right, rgba(0, 0, 0, 0.02) 1px, transparent 1px),
-                      linear-gradient(to bottom, rgba(0, 0, 0, 0.02) 1px, transparent 1px);
+    background-image: 
+        linear-gradient(to right, rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.015) 1px, transparent 1px),
+        linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+    background-size: 24px 24px, 24px 24px, 120px 120px, 120px 120px;
 }
 
 .glass-panel {
@@ -294,7 +304,7 @@ body::before {
     max-width: 1760px;
     width: 100%;
     margin: 0 auto;
-    padding: var(--space-6) var(--space-8) var(--space-12) var(--space-8);
+    padding: var(--space-4) var(--space-6) var(--space-8) var(--space-6);
     position: relative;
     z-index: 1;
 }
@@ -304,17 +314,17 @@ body::before {
 /* Numeric styling helper for mission control tables and counters */
 .tabular-nums {
     font-variant-numeric: tabular-nums;
-    font-feature-settings: 'tnum';
+    font-feature-settings: 'tnum' 1, 'zero' 1;
 }
 
 /* =====================================================
-   1. APPLICATION HEADER & NAVIGATION COMMAND BAR
+   1. APPLICATION HEADER & NAVIGATION COMMAND BAR (COMPACT DESKTOP TITLEBAR)
    ===================================================== */
 .app-header {
     background: var(--color-bg-surface);
-    border-bottom: 1px solid var(--color-border-base);
-    padding: 0 var(--space-8);
-    height: 64px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding: 0 var(--space-6);
+    height: 48px;
     margin-bottom: 0;
     position: sticky;
     top: 0;
@@ -330,80 +340,95 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: var(--space-6);
+    gap: var(--space-4);
 }
 
 .brand {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
 }
 
 .logo-box {
-    width: 36px;
-    height: 36px;
-    background: var(--color-primary-subtle);
+    width: 26px;
+    height: 26px;
+    background: var(--color-bg-input);
     border: 1px solid var(--color-primary-border);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xs);
     display: flex;
     align-items: center;
     justify-content: center;
     flex-shrink: 0;
+    position: relative;
 }
 
 .logo-box .icon {
-    width: 18px;
-    height: 18px;
+    width: 13px;
+    height: 13px;
     stroke: var(--color-primary);
     fill: none;
-    stroke-width: 2;
+    stroke-width: 2.2;
 }
 
 .brand-text {
     display: flex;
-    flex-direction: column;
+    align-items: baseline;
+    gap: 8px;
 }
 
 .brand-title-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .brand-acronym {
-    font-size: var(--font-size-xl);
+    font-family: var(--font-mono);
+    font-size: 14px;
     font-weight: var(--font-weight-black);
-    letter-spacing: var(--tracking-wider);
+    letter-spacing: 0.5px;
     color: var(--color-primary);
+    line-height: 1;
 }
 
 .brand-version-badge {
-    font-size: var(--font-size-2xs);
-    font-weight: var(--font-weight-extrabold);
+    font-family: var(--font-mono);
+    font-size: 9px;
+    font-weight: var(--font-weight-bold);
     text-transform: uppercase;
-    letter-spacing: var(--tracking-wider);
-    padding: 2px 6px;
-    border-radius: var(--radius-sm);
-    background: var(--color-primary-subtle);
+    letter-spacing: 0.6px;
+    padding: 1px 5px;
+    border-radius: var(--radius-xs);
+    background: var(--color-bg-input);
     color: var(--color-primary);
     border: 1px solid var(--color-primary-border);
+    line-height: 1.2;
 }
 
 .brand-full-name {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-extrabold);
+    font-size: 13px;
+    font-weight: var(--font-weight-bold);
     letter-spacing: var(--tracking-tight);
     color: var(--color-text-primary);
-    line-height: var(--line-height-tight);
+    line-height: 1;
     margin: 0;
 }
 
 .brand .subtitle {
-    color: var(--color-text-secondary);
-    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    font-size: 11px;
     font-weight: var(--font-weight-medium);
     letter-spacing: 0.2px;
-    margin-top: 2px;
+    display: none;
+}
+
+@media (min-width: 1200px) {
+    .brand .subtitle {
+        display: inline;
+        border-left: 1px solid var(--color-border-base);
+        padding-left: 8px;
+        margin-left: 2px;
+    }
 }
 
 /* TOP NAVIGATION (SEGMENTED INDUSTRIAL TABS) */
@@ -411,26 +436,29 @@ body::before {
     display: inline-flex;
     align-items: center;
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
-    padding: 3px;
-    gap: 3px;
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xs);
+    padding: 2px;
+    gap: 2px;
+    height: 28px;
 }
 
 .nav-item, .nav-link {
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 4px;
     color: var(--color-text-secondary);
     text-decoration: none;
     font-weight: var(--font-weight-semibold);
-    font-size: var(--font-size-base);
-    height: 32px;
-    padding: 0 14px;
-    border-radius: var(--radius-sm);
+    font-size: 11px;
+    height: 24px;
+    padding: 0 10px;
+    border-radius: var(--radius-xs);
     transition: var(--transition-fast);
     border: 1px solid transparent;
     white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
 }
 
 .nav-item:hover, .nav-link:hover {
@@ -451,8 +479,8 @@ body::before {
 }
 
 .nav-icon {
-    width: var(--icon-sm);
-    height: var(--icon-sm);
+    width: 12px;
+    height: 12px;
     stroke: currentColor;
     stroke-width: 2;
 }
@@ -460,19 +488,19 @@ body::before {
 .header-controls {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
+    gap: var(--space-2);
 }
 
 /* USER PROFILE BUTTON (ENGINEER ADMIN ACCESS) */
 .user-profile-btn {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
-    height: 38px;
-    padding: 0 12px 0 6px;
-    border-radius: var(--radius-pill);
+    gap: 6px;
+    height: 28px;
+    padding: 0 8px 0 4px;
+    border-radius: var(--radius-xs);
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
+    border: 1px solid var(--color-border-subtle);
     cursor: pointer;
     transition: var(--transition-fast);
     color: var(--color-text-primary);
@@ -482,18 +510,17 @@ body::before {
 .user-profile-btn:hover {
     border-color: var(--color-border-highlight);
     background: var(--color-bg-surface-elevated);
-    box-shadow: var(--elevation-1);
 }
 
 .user-avatar {
-    width: 26px;
-    height: 26px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: var(--font-weight-extrabold);
-    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-black);
+    font-size: 10px;
     flex-shrink: 0;
 }
 
@@ -511,24 +538,24 @@ body::before {
 
 .user-info {
     display: flex;
-    flex-direction: column;
-    justify-content: center;
-    line-height: var(--line-height-tight);
+    align-items: baseline;
+    gap: 5px;
+    line-height: 1;
 }
 
 .user-name {
-    font-size: var(--font-size-base);
+    font-size: 11px;
     font-weight: var(--font-weight-bold);
     color: var(--color-text-primary);
     white-space: nowrap;
 }
 
 .user-role-badge {
-    font-size: var(--font-size-2xs);
+    font-size: 9px;
     font-weight: var(--font-weight-extrabold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
-    margin-top: 1px;
+    margin-top: 0;
 }
 
 .role-eng {
@@ -540,23 +567,23 @@ body::before {
 }
 
 .user-dropdown-icon {
-    width: var(--icon-sm);
-    height: var(--icon-sm);
+    width: 12px;
+    height: 12px;
     stroke: var(--color-text-muted);
     stroke-width: 2;
     fill: none;
-    margin-left: 2px;
+    margin-left: 1px;
 }
 
 .theme-toggle-btn {
-    height: 38px;
-    width: 38px;
+    height: 28px;
+    width: 28px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xs);
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
+    border: 1px solid var(--color-border-subtle);
     color: var(--color-text-secondary);
     cursor: pointer;
     transition: var(--transition-fast);
@@ -569,8 +596,8 @@ body::before {
 }
 
 .theme-toggle-btn .icon {
-    width: var(--icon-md);
-    height: var(--icon-md);
+    width: 13px;
+    height: 13px;
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
@@ -647,13 +674,13 @@ body::before {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
-    height: 40px;
-    padding: 0 14px;
+    height: 32px;
+    padding: 0 10px;
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xs);
     color: var(--color-text-primary);
-    font-size: var(--font-size-md);
+    font-size: 12px;
     font-weight: var(--font-weight-bold);
     cursor: pointer;
     transition: var(--transition-fast);
@@ -665,8 +692,8 @@ body::before {
 }
 
 .filter-btn .icon {
-    width: var(--icon-sm);
-    height: var(--icon-sm);
+    width: 13px;
+    height: 13px;
     stroke: currentColor;
     stroke-width: 2;
     fill: none;
@@ -675,9 +702,9 @@ body::before {
 .filter-badge {
     background: var(--color-primary);
     color: var(--color-text-inverse);
-    font-size: var(--font-size-xs);
+    font-size: 9px;
     font-weight: var(--font-weight-extrabold);
-    padding: 1px 6px;
+    padding: 1px 5px;
     border-radius: var(--radius-pill);
     margin-left: 2px;
 }
@@ -685,15 +712,15 @@ body::before {
 .filter-popover {
     display: none;
     position: absolute;
-    top: calc(100% + 8px);
+    top: calc(100% + 6px);
     left: 0;
-    width: 280px;
+    width: 260px;
     background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-highlight);
-    border-radius: var(--radius-lg);
+    border: 1px solid var(--color-border-base);
+    border-radius: var(--radius-md);
     box-shadow: var(--elevation-3);
     z-index: 100;
-    padding: var(--space-4);
+    padding: var(--space-3);
     flex-direction: column;
     gap: var(--space-3);
 }
@@ -706,12 +733,12 @@ body::before {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid var(--color-border-base);
-    padding-bottom: 8px;
+    border-bottom: 1px solid var(--color-border-subtle);
+    padding-bottom: 6px;
 }
 
 .filter-popover-title {
-    font-size: var(--font-size-sm);
+    font-size: 11px;
     font-weight: var(--font-weight-extrabold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wider);
@@ -719,7 +746,7 @@ body::before {
 }
 
 .filter-clear-btn {
-    font-size: var(--font-size-sm);
+    font-size: 11px;
     font-weight: var(--font-weight-bold);
     color: var(--color-text-secondary);
     background: none;
@@ -735,17 +762,17 @@ body::before {
 .filter-popover-body {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
+    gap: var(--space-2);
 }
 
 .filter-field {
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 3px;
 }
 
 .filter-label {
-    font-size: var(--font-size-xs);
+    font-size: 10px;
     font-weight: var(--font-weight-extrabold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wide);
@@ -753,13 +780,13 @@ body::before {
 }
 
 .filter-select {
-    height: 36px;
-    padding: 0 10px;
+    height: 30px;
+    padding: 0 8px;
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-sm);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xs);
     color: var(--color-text-primary);
-    font-size: var(--font-size-base);
+    font-size: 12px;
     outline: none;
     cursor: pointer;
     font-family: inherit;
@@ -771,13 +798,13 @@ body::before {
 
 /* SORT WRAPPER */
 .sort-wrapper select {
-    height: 40px;
-    padding: 0 14px;
+    height: 32px;
+    padding: 0 10px;
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-xs);
     color: var(--color-text-primary);
-    font-size: var(--font-size-md);
+    font-size: 12px;
     font-weight: var(--font-weight-semibold);
     cursor: pointer;
     outline: none;
@@ -797,12 +824,12 @@ body::before {
 .sim-date-chip {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    gap: 6px;
     background: var(--color-bg-input);
-    border: 1px solid var(--color-border-base);
-    padding: 0 14px;
-    border-radius: var(--radius-md);
-    height: 40px;
+    border: 1px solid var(--color-border-subtle);
+    padding: 0 10px;
+    border-radius: var(--radius-xs);
+    height: 32px;
     transition: var(--transition-fast);
 }
 
@@ -818,8 +845,8 @@ body::before {
 }
 
 .sim-chip-icon .icon {
-    width: var(--icon-md);
-    height: var(--icon-md);
+    width: 13px;
+    height: 13px;
     stroke: currentColor;
     fill: none;
     stroke-width: 2;
@@ -828,11 +855,11 @@ body::before {
 .sim-chip-body {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 6px;
 }
 
 .sim-chip-label {
-    font-size: var(--font-size-xs);
+    font-size: 10px;
     font-weight: var(--font-weight-extrabold);
     color: var(--color-text-secondary);
     white-space: nowrap;
@@ -844,7 +871,7 @@ body::before {
     background: transparent;
     border: none;
     color: var(--color-text-primary);
-    font-size: var(--font-size-md);
+    font-size: 12px;
     font-weight: var(--font-weight-semibold);
     outline: none;
     cursor: pointer;
@@ -855,21 +882,22 @@ body::before {
    3. BUTTON SYSTEM (MISSION CONTROL VARIANTS)
    ===================================================== */
 .btn {
-    padding: 0 16px;
-    height: 38px;
+    padding: 0 12px;
+    height: 32px;
     border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
-    background: var(--color-bg-input);
-    color: var(--color-text-primary);
-    font-size: var(--font-size-md);
-    font-weight: var(--font-weight-semibold);
+    border-radius: var(--radius-xs);
+    font-size: 12px;
+    font-weight: var(--font-weight-bold);
     cursor: pointer;
     transition: var(--transition-fast);
     display: inline-flex;
     align-items: center;
-    gap: var(--space-2);
+    gap: 6px;
+    background: var(--color-bg-input);
+    color: var(--color-text-primary);
     text-decoration: none;
     white-space: nowrap;
+    letter-spacing: var(--tracking-wide);
     outline: none;
     font-family: inherit;
 }
@@ -896,29 +924,29 @@ body::before {
 }
 
 .btn-primary {
-    background: var(--color-primary);
-    color: var(--color-text-inverse);
-    border-color: var(--color-primary);
+    background: var(--color-bg-surface-elevated);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-primary-border);
     font-weight: var(--font-weight-bold);
-    height: 40px;
-    padding: 0 18px;
+    height: 38px;
+    padding: 0 16px;
 }
 
 .btn-primary .icon {
-    stroke: var(--color-text-inverse);
+    stroke: var(--color-primary);
     fill: none;
-    stroke-width: 2.5;
+    stroke-width: 2.2;
 }
 
 .btn-primary:hover {
-    background: var(--color-primary-hover);
-    border-color: var(--color-primary-hover);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-text-inverse);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .btn-primary:hover .icon {
-    stroke: #ffffff;
+    stroke: var(--color-text-inverse);
 }
 
 .btn-recalibrate {

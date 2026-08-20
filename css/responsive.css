@@ -89,76 +89,65 @@ body {
 /* MOBILE PHONES (iOS / Android <= 767px) */
 @media (max-width: 767px) {
     body {
-        padding: 12px 10px;
+        padding: 0;
     }
     .app-header {
-        padding: 14px 16px;
-        margin-bottom: 16px;
+        height: auto;
+        padding: 10px 14px;
+        margin-bottom: 0;
     }
     .app-container {
-        padding: 12px 10px;
+        padding: 12px 10px 32px 10px;
     }
     .header-content {
         flex-direction: column;
         align-items: stretch;
-        gap: 14px;
+        gap: 10px;
     }
     .brand {
         justify-content: flex-start;
     }
-    .brand h1 {
-        font-size: 18px;
+    .brand-full-name {
+        font-size: 13px;
     }
     .nav-links {
         width: 100%;
         justify-content: space-around;
+        height: 32px;
     }
     .nav-item, .nav-link {
         flex: 1;
         justify-content: center;
-        padding: 10px 8px;
-        font-size: 12px;
-        min-height: 44px; /* Touch target minimum */
+        padding: 0 8px;
+        font-size: 11px;
+        height: 28px;
     }
     .header-controls {
         width: 100%;
         justify-content: space-between;
         gap: 8px;
     }
-    .dashboard-stats-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-        padding: 16px;
-    }
-    .fleet-grid {
+    .incident-grid,
+    .monitored-grid {
         grid-template-columns: 1fr;
-        gap: 16px;
-    }
-    .toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        padding: 14px;
         gap: 12px;
     }
-    .filter-group {
+    .engineering-command-dock {
         flex-direction: column;
         align-items: stretch;
+        padding: 10px 12px;
+        gap: 8px;
     }
-    .filter-group .input-control, .search-box input {
-        min-height: 44px;
-    }
-    .btn, .mc-btn {
-        min-height: 44px; /* Apple iOS & Android 44px touch rule */
-        font-size: 14px;
-    }
-    .toolbar .btn {
-        margin-left: 0 !important;
+    .command-search-box,
+    .command-sort-wrapper,
+    .filter-btn,
+    .sim-date-chip,
+    .btn {
         width: 100%;
-        justify-content: center;
+        height: 36px;
     }
-    .mc-stats {
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
+    .command-sort-wrapper select {
+        width: 100%;
     }
 }
 
