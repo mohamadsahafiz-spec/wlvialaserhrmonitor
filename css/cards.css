@@ -1,76 +1,132 @@
 /* =====================================================
    CARDS.CSS - LMS v2.0 Fleet Mission Control Architecture
-   Design Language: Industrial Telemetry + 3 Surfaces + Apple Spacing Tokens
+   Design Language: Engineering Operating Console + 3 Surfaces + Apple Spacing Tokens
    ===================================================== */
 
 /* =====================================================
-   1. FLEET TELEMETRY STRIP (Compact, Industrial Telemetry)
+   ZONE B & C: ENGINEERING COMMAND CONSOLE (Unified Control Surface)
+   Surface 2 Container bonding Telemetry Ribbon + Command Dock
    ===================================================== */
+.engineering-command-console {
+    display: flex;
+    flex-direction: column;
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-base);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-1);
+    overflow: visible;
+    margin-bottom: var(--space-8);
+    position: relative;
+    z-index: 10;
+}
+
+/* 1. FLEET TELEMETRY RIBBON (Continuous Instrument Cluster) */
+.fleet-telemetry-ribbon,
 .fleet-telemetry-strip {
     display: flex;
     flex-direction: column;
-    gap: var(--space-3);
-    margin-bottom: var(--space-6);
+    width: 100%;
 }
 
+.telemetry-ribbon-grid,
 .telemetry-metrics-row {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    gap: var(--space-4);
+    background: transparent;
 }
 
 @media (max-width: 1024px) {
+    .telemetry-ribbon-grid,
     .telemetry-metrics-row {
         grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 580px) {
+    .telemetry-ribbon-grid,
     .telemetry-metrics-row {
         grid-template-columns: 1fr;
     }
 }
 
+.telemetry-segment,
 .telemetry-module {
-    background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
-    padding: var(--space-4) var(--space-5);
+    padding: var(--space-4) var(--space-6);
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: var(--space-3);
+    gap: var(--space-2);
+    border-right: 1px solid var(--color-border-base);
+    background: transparent;
     transition: var(--transition-fast);
-    box-shadow: var(--elevation-1);
     position: relative;
 }
 
-.telemetry-module:hover {
-    border-color: var(--color-border-highlight);
-    background: var(--color-bg-surface-elevated);
+.telemetry-segment:last-child,
+.telemetry-module:last-child {
+    border-right: none;
 }
 
+@media (max-width: 1024px) {
+    .telemetry-segment:nth-child(2),
+    .telemetry-module:nth-child(2) {
+        border-right: none;
+    }
+    .telemetry-segment:nth-child(1),
+    .telemetry-segment:nth-child(2),
+    .telemetry-module:nth-child(1),
+    .telemetry-module:nth-child(2) {
+        border-bottom: 1px solid var(--color-border-base);
+    }
+}
+
+@media (max-width: 580px) {
+    .telemetry-segment,
+    .telemetry-module {
+        border-right: none;
+        border-bottom: 1px solid var(--color-border-base);
+    }
+    .telemetry-segment:last-child,
+    .telemetry-module:last-child {
+        border-bottom: none;
+    }
+}
+
+.telemetry-segment:hover,
+.telemetry-module:hover {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+[data-theme="light"] .telemetry-segment:hover,
+[data-theme="light"] .telemetry-module:hover {
+    background: rgba(0, 0, 0, 0.015);
+}
+
+.ts-header,
 .tm-header {
     display: flex;
-    justify-content: space-between;
     align-items: center;
+    gap: 8px;
 }
 
+.ts-label,
 .tm-label {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-2xs);
     font-weight: var(--font-weight-extrabold);
     text-transform: uppercase;
     letter-spacing: var(--tracking-wider);
     color: var(--color-text-secondary);
 }
 
+.ts-led,
 .tm-led {
-    width: 6px;
-    height: 6px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
     flex-shrink: 0;
 }
 
+.ts-icon,
 .tm-icon {
     width: var(--icon-sm);
     height: var(--icon-sm);
@@ -79,105 +135,111 @@
     fill: none;
 }
 
+.ts-body,
 .tm-body {
     display: flex;
-    flex-direction: column;
-    gap: 2px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    margin-top: 4px;
 }
 
+.ts-value,
 .tm-value {
     font-size: var(--font-size-4xl);
     font-weight: var(--font-weight-black);
     letter-spacing: var(--tracking-tight);
-    line-height: var(--line-height-tight);
+    line-height: 1;
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
     color: var(--color-text-primary);
 }
 
+.ts-sub,
 .tm-sub {
-    font-size: var(--font-size-xs);
+    font-size: var(--font-size-2xs);
     color: var(--color-text-muted);
-    font-weight: var(--font-weight-medium);
+    font-weight: var(--font-weight-semibold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    white-space: nowrap;
 }
 
-.tm-healthy .tm-led { background: var(--color-safe); }
-.tm-warning .tm-led { background: var(--color-warning); }
-.tm-alarm .tm-led { background: var(--color-alarm); }
+.ts-healthy .ts-led, .tm-healthy .tm-led { background: var(--color-safe); }
+.ts-warning .ts-led, .tm-warning .tm-led { background: var(--color-warning); }
+.ts-alarm .ts-led, .tm-alarm .tm-led { background: var(--color-alarm); }
 
-.tm-alarm {
-    border-color: var(--color-alarm-border);
-}
+.ts-alarm .ts-value, .tm-alarm .tm-value { color: var(--color-alarm); }
+.ts-warning .ts-value, .tm-warning .tm-value { color: var(--color-warning); }
+.ts-healthy .ts-value, .tm-healthy .tm-value { color: var(--color-safe); }
 
-.tm-warning {
-    border-color: var(--color-warning-border);
-}
-
+/* SCADA Diagnostic Status Track */
+.telemetry-scada-track,
 .telemetry-diagnostic-strip {
     display: flex;
     align-items: center;
-    gap: var(--space-3);
-    padding: 10px 16px;
-    background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
+    gap: var(--space-4);
+    padding: 9px var(--space-6);
+    background: var(--color-bg-input);
+    border-top: 1px solid var(--color-border-base);
+    font-size: var(--font-size-xs);
     color: var(--color-text-primary);
-    box-shadow: var(--elevation-1);
 }
 
+.scada-status-pill,
 .telemetry-badge {
     display: inline-flex;
     align-items: center;
     gap: 6px;
     font-size: var(--font-size-2xs);
     font-weight: var(--font-weight-extrabold);
-    letter-spacing: var(--tracking-wide);
+    letter-spacing: var(--tracking-wider);
     text-transform: uppercase;
     color: var(--color-primary);
     background: var(--color-primary-subtle);
     border: 1px solid var(--color-primary-border);
-    padding: 3px 8px;
-    border-radius: var(--radius-sm);
+    padding: 2px 7px;
+    border-radius: var(--radius-xs);
     white-space: nowrap;
+    flex-shrink: 0;
 }
 
-.telemetry-badge .icon {
-    width: 13px;
-    height: 13px;
-    stroke: var(--color-primary);
-    fill: none;
+.scada-live-pulse {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-primary);
 }
 
+.scada-readout-text,
 .telemetry-readout-text {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-xs);
     color: var(--color-text-secondary);
     font-weight: var(--font-weight-medium);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    letter-spacing: var(--tracking-normal);
 }
 
 /* =====================================================
-   2. ENGINEERING COMMAND BAR (Aligned Command Row)
+   2. ENGINEERING COMMAND DOCK (Unified Operational Control Row)
    ===================================================== */
+.engineering-command-dock,
 .engineering-command-bar {
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    margin-bottom: var(--space-6);
+    padding: var(--space-3) var(--space-6);
     background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-base);
-    border-radius: var(--radius-md);
-    padding: var(--space-3) var(--space-4);
-    box-shadow: var(--elevation-1);
+    border-top: 1px solid var(--color-border-base);
     flex-wrap: wrap;
 }
 
 .command-search-box {
     position: relative;
     flex: 1;
-    min-width: 220px;
+    min-width: 240px;
     height: 40px;
     display: flex;
     align-items: center;
@@ -212,7 +274,7 @@
 }
 
 .command-sort-wrapper {
-    min-width: 190px;
+    min-width: 200px;
     height: 40px;
 }
 
@@ -227,6 +289,15 @@
     outline: none;
     width: 100%;
     cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.command-sort-wrapper select:hover {
+    border-color: var(--color-border-highlight);
+}
+
+.command-sort-wrapper select:focus {
+    border-color: var(--color-primary);
 }
 
 /* =====================================================
