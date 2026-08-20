@@ -90,6 +90,20 @@ function initDOM() {
         btnPrint: document.getElementById('btn-print'),
         btnTheme: document.getElementById('btn-theme'),
 
+        // Share Foundation Elements
+        btnShareFleet: document.getElementById('btn-share-fleet'),
+        btnShareMachine: document.getElementById('btn-share-machine'),
+        shareModalOverlay: document.getElementById('share-modal-overlay'),
+        btnCloseShareModal: document.getElementById('btn-close-share-modal'),
+        btnCancelShareModal: document.getElementById('btn-cancel-share-modal'),
+        btnShareWhatsapp: document.getElementById('btn-share-whatsapp'),
+        btnShareEmail: document.getElementById('btn-share-email'),
+        btnShareCopylink: document.getElementById('btn-share-copylink'),
+        btnSharePrint: document.getElementById('btn-share-print'),
+        btnSharePdf: document.getElementById('btn-share-pdf'),
+        shareModalTitle: document.getElementById('share-modal-title'),
+        shareModalSubtitle: document.getElementById('share-modal-subtitle'),
+
         // Recalibration Modal
         btnCloseMachModal: document.getElementById('btn-close-mach-modal'),
         btnOpenRecalibrate: document.getElementById('btn-open-recalibrate'),
@@ -1103,6 +1117,38 @@ function setupEventListeners() {
         });
     });
 
+    // Quick Jump Buttons in Overview tab
+    document.querySelectorAll('.btn-jump-tab').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const targetTab = btn.getAttribute('data-target-tab');
+            if (targetTab) {
+                if (targetTab === 'config' && AppState.settings.accessMode !== 'ENGINEER') {
+                    requireEngineerMode(() => {
+                        switchTab(targetTab);
+                    });
+                    return;
+                }
+                switchTab(targetTab);
+            }
+        });
+    });
+
+    // Replacement Filter Bar delegation
+    const replFilterBar = document.getElementById('repl-filter-bar');
+    if (replFilterBar) {
+        replFilterBar.addEventListener('click', (e) => {
+            const pill = e.target.closest('.history-pill');
+            if (pill) {
+                const filterLaserId = pill.getAttribute('data-repl-filter');
+                const machine = AppState.machines.find(m => m.id === AppState.currentMachineId);
+                if (machine) {
+                    MachineController.renderReplacementHistory(machine, null, filterLaserId);
+                }
+            }
+        });
+    }
+
     // ESC Key to Close Modal Workspace
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && DOM.viewSingle && !DOM.viewSingle.classList.contains('hidden')) {
@@ -1560,6 +1606,170 @@ function setupEventListeners() {
         UI.exportToCSV(AppState.machines, getEvalTime(), AppState.simulatedDate);
         UI.showToast('CSV Report Downloaded', 'success');
     });
+
+    // =====================================================
+    // SHARE FOUNDATION HANDLERS
+    // =====================================================
+    let shareTargetMachineId = null;
+
+    const openShareModal = (machineId = null) => {
+        shareTargetMachineId = machineId;
+        const machine = machineId ? AppState.machines.find(m => m.id === machineId) : null;
+
+        if (machine) {
+            if (DOM.shareModalTitle) DOM.shareModalTitle.textContent = `Share ${machine.machineName || machine.machineNo}`;
+            if (DOM.shareModalSubtitle) DOM.shareModalSubtitle.textContent = `Export or distribute diagnostics for ${machine.machineNo} (SN: ${machine.serialNo})`;
+        } else {
+            if (DOM.shareModalTitle) DOM.shareModalTitle.textContent = "Share Fleet System Status";
+            if (DOM.shareModalSubtitle) DOM.shareModalSubtitle.textContent = `Export or distribute real-time metrics across ${AppState.machines.length} machines`;
+        }
+
+        UI.showModal(DOM.shareModalOverlay);
+    };
+
+    const closeShareModal = () => {
+        UI.hideModal(DOM.shareModalOverlay);
+        shareTargetMachineId = null;
+    };
+
+    if (DOM.btnShareFleet) DOM.btnShareFleet.addEventListener('click', () => openShareModal(null));
+    if (DOM.btnShareMachine) DOM.btnShareMachine.addEventListener('click', () => openShareModal(AppState.currentMachineId));
+    if (DOM.btnCloseShareModal) DOM.btnCloseShareModal.addEventListener('click', closeShareModal);
+    if (DOM.btnCancelShareModal) DOM.btnCancelShareModal.addEventListener('click', closeShareModal);
+
+    // 1. WhatsApp Share
+    if (DOM.btnShareWhatsapp) {
+        DOM.btnShareWhatsapp.addEventListener('click', () => {
+            const evalTime = getEvalTime();
+            let msg = '';
+
+            if (shareTargetMachineId) {
+                const m = AppState.machines.find(mach => mach.id === shareTargetMachineId);
+                if (m) {
+                    const metrics = LaserEngine.calculateMachineMetrics(m, evalTime);
+                    const crit = metrics.mostCriticalLaser;
+                    const formatHrs = Math.abs(crit.remainingTotal);
+                    const remainStr = crit.remainingTotal < 0 ? `-${formatHrs} hrs (OVERDUE)` : `${formatHrs} hrs`;
+
+                    msg = `*Laser Management System - Machine Report*\n` +
+                          `• Machine: ${m.machineName || m.machineNo} (${m.model || 'BMD302W'})\n` +
+                          `• Serial: ${m.serialNo}\n` +
+                          `• Status: ${metrics.status}\n` +
+                          `• Current Runtime: ${crit.currentHour} hrs\n` +
+                          `• Remaining: ${remainStr}\n` +
+                          `• Life Remaining: ${crit.formattedLifeRemaining}\n` +
+                          `• Simulated Date: ${AppState.simulatedDate}\n` +
+                          `• Generated: ${new Date().toLocaleTimeString()}`;
+                }
+            } else {
+                const total = AppState.machines.length;
+                const alarms = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'ALARM');
+                const warns = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'WARNING');
+                const safes = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'SAFE');
+
+                msg = `*Laser Management System - Fleet Status Report*\n` +
+                      `• Monitored Fleet: ${total} Machines\n` +
+                      `• 🔴 ALARM: ${alarms.length} | 🟡 WARNING: ${warns.length} | 🟢 HEALTHY: ${safes.length}\n` +
+                      `• Simulated Date: ${AppState.simulatedDate}\n` +
+                      `• System Status: ${alarms.length > 0 ? 'CRITICAL ATTENTION REQUIRED' : (warns.length > 0 ? 'MAINTENANCE PLANNING' : 'OPTIMAL')}\n` +
+                      `• Generated: ${new Date().toLocaleTimeString()}`;
+            }
+
+            const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            window.open(waUrl, '_blank');
+            closeShareModal();
+            UI.showToast('Opening WhatsApp Share...', 'info');
+        });
+    }
+
+    // 2. Email Share
+    if (DOM.btnShareEmail) {
+        DOM.btnShareEmail.addEventListener('click', () => {
+            const evalTime = getEvalTime();
+            let subject = '';
+            let body = '';
+
+            if (shareTargetMachineId) {
+                const m = AppState.machines.find(mach => mach.id === shareTargetMachineId);
+                if (m) {
+                    const metrics = LaserEngine.calculateMachineMetrics(m, evalTime);
+                    const crit = metrics.mostCriticalLaser;
+                    subject = `[LMS Report] ${m.machineName || m.machineNo} - ${metrics.status} Status`;
+                    body = `Laser Management System - Machine Status Report\n\n` +
+                           `Machine Name: ${m.machineName || m.machineNo}\n` +
+                           `Machine Number: ${m.machineNo}\n` +
+                           `Serial Number: ${m.serialNo}\n` +
+                           `Model: ${m.model || 'BMD302W'}\n` +
+                           `Department: ${m.department || 'Production'}\n` +
+                           `Operational Status: ${metrics.status}\n` +
+                           `Current Laser Runtime: ${crit.currentHour} hrs\n` +
+                           `Remaining Laser Hours: ${crit.remainingTotal} hrs\n` +
+                           `Life Remaining Capacity: ${crit.formattedLifeRemaining}\n\n` +
+                           `Simulated Evaluation Date: ${AppState.simulatedDate}\n` +
+                           `Generated: ${new Date().toLocaleString()}`;
+                }
+            } else {
+                const total = AppState.machines.length;
+                const alarms = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'ALARM');
+                const warns = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'WARNING');
+                const safes = AppState.machines.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'SAFE');
+
+                subject = `[LMS Fleet Report] Fleet Health Overview - ${alarms.length} Alarms / ${warns.length} Warnings`;
+                body = `Laser Management System - Industrial Fleet Overview Report\n\n` +
+                       `Total Machines: ${total}\n` +
+                       `ALARM State: ${alarms.length} machine(s)\n` +
+                       `WARNING State: ${warns.length} machine(s)\n` +
+                       `HEALTHY State: ${safes.length} machine(s)\n\n` +
+                       `Simulated Evaluation Date: ${AppState.simulatedDate}\n` +
+                       `Report Generated: ${new Date().toLocaleString()}`;
+            }
+
+            const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            window.location.href = mailtoUrl;
+            closeShareModal();
+            UI.showToast('Opening Email Client...', 'info');
+        });
+    }
+
+    // 3. Copy Link
+    if (DOM.btnShareCopylink) {
+        DOM.btnShareCopylink.addEventListener('click', () => {
+            const currentUrl = window.location.href.split('?')[0];
+            const finalUrl = shareTargetMachineId ? `${currentUrl}?id=${shareTargetMachineId}` : currentUrl;
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(finalUrl).then(() => {
+                    UI.showToast('Workspace link copied to clipboard ✓', 'success');
+                    closeShareModal();
+                }).catch(() => {
+                    prompt('Copy workspace link:', finalUrl);
+                    closeShareModal();
+                });
+            } else {
+                prompt('Copy workspace link:', finalUrl);
+                closeShareModal();
+            }
+        });
+    }
+
+    // 4. Print Report
+    if (DOM.btnSharePrint) {
+        DOM.btnSharePrint.addEventListener('click', () => {
+            closeShareModal();
+            setTimeout(() => {
+                UI.printReport();
+            }, 300);
+        });
+    }
+
+    // 5. Download PDF / Export CSV
+    if (DOM.btnSharePdf) {
+        DOM.btnSharePdf.addEventListener('click', () => {
+            closeShareModal();
+            UI.exportToCSV(AppState.machines, getEvalTime(), AppState.simulatedDate);
+            UI.showToast('Report dataset downloaded ✓', 'success');
+        });
+    }
 
     // Fleet Backup Export & Import (.json)
     if (DOM.btnExportJson) {

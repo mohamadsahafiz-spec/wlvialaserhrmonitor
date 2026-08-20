@@ -146,7 +146,7 @@ export const DashboardController = {
                     let replaceDaysText = '—';
                     if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
                         const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
-                        replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d`;
+                        replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d overdue` : `${daysVal}d left`;
                     }
 
                     const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
@@ -279,7 +279,7 @@ export const DashboardController = {
                 let replaceDaysText = '—';
                 if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
                     const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
-                    replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d`;
+                    replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d overdue` : `${daysVal}d left`;
                 }
 
                 const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
@@ -305,7 +305,7 @@ export const DashboardController = {
                             <span class="mc-split-val mc-stat-val-remain ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}">${remainText}</span>
                         </div>
                         <div class="mc-split-item">
-                            <span class="mc-split-label">Replace In</span>
+                            <span class="mc-split-label">Replace</span>
                             <span class="mc-split-val mc-stat-val-days" style="${crit.remainingTotal < 0 ? 'color:var(--red); font-weight:800;' : ''}">${replaceDaysText}</span>
                         </div>
                     </div>
@@ -316,7 +316,41 @@ export const DashboardController = {
                         </div>
                         <span class="mc-progress-label">${lifeRemainingDisplay}</span>
                     </div>
+
+                    <div class="mc-card-footer">
+                        <div class="mc-action-buttons">
+                            <button class="btn-mc-action btn-mc-edit" type="button" title="Edit Machine Settings">
+                                <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                <span>Edit</span>
+                            </button>
+                            <button class="btn-mc-action btn-mc-delete" type="button" title="Delete Machine">
+                                <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                <span>Delete</span>
+                            </button>
+                        </div>
+                    </div>
                 `;
+
+                const btnEdit = card.querySelector('.btn-mc-edit');
+                const btnDelete = card.querySelector('.btn-mc-delete');
+
+                if (btnEdit) {
+                    btnEdit.onclick = (e) => {
+                        e.stopPropagation();
+                        if (typeof onEditMachine === 'function') {
+                            onEditMachine(machine.id);
+                        }
+                    };
+                }
+
+                if (btnDelete) {
+                    btnDelete.onclick = (e) => {
+                        e.stopPropagation();
+                        if (typeof onDeleteMachine === 'function') {
+                            onDeleteMachine(machine.id);
+                        }
+                    };
+                }
 
                 sectionGrid.appendChild(card);
             });

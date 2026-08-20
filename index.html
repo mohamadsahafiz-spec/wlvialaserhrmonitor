@@ -210,20 +210,16 @@
                 <!-- Dynamically populated by JS -->
             </div>
 
-            <!-- Bottom Action Footer Bar for Reports & Export -->
+            <!-- Bottom Action Footer Bar for Share & Diagnostics -->
             <div class="fleet-footer-bar glass-panel">
                 <div class="footer-info">
                     <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    <span>Laser Lifetime & Hour Recalibration Engine • Fleet Overview Reports</span>
+                    <span>Laser Lifetime & Hour Recalibration Engine • Industrial Fleet Reports</span>
                 </div>
                 <div class="footer-actions">
-                    <button id="btn-export-csv" class="btn btn-secondary" title="Export CSV Report">
-                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                        Export CSV
-                    </button>
-                    <button id="btn-print" class="btn btn-secondary" title="Print Report">
-                        <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
-                        Print Report
+                    <button id="btn-share-fleet" class="btn btn-secondary" title="Share Fleet Status & Export">
+                        <svg class="icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                        Share
                     </button>
                 </div>
             </div>
@@ -258,6 +254,10 @@
                     </div>
 
                     <div class="mach-header-right">
+                        <button id="btn-share-machine" class="btn btn-secondary" style="padding: 6px 12px; font-size: 12px; gap: 6px;" title="Share Machine Report">
+                            <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                            Share
+                        </button>
                         <div class="sim-date-chip" title="Set simulated current evaluation date">
                             <div class="sim-chip-icon">
                                 <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
@@ -276,23 +276,31 @@
 
                 <!-- Tab Navigation Bar -->
                 <div class="mach-tabs-bar">
-                    <button class="mach-tab-btn active" data-tab="overview">
+                    <button class="mach-tab-btn active" data-tab="overview" id="tab-btn-overview">
                         <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
                         Overview
                     </button>
-                    <button class="mach-tab-btn" data-tab="health">
+                    <button class="mach-tab-btn" data-tab="status" id="tab-btn-status">
                         <svg class="icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
-                        Health & Diode
+                        Current Laser Status
                     </button>
-                    <button class="mach-tab-btn" data-tab="calibration">
+                    <button class="mach-tab-btn" data-tab="lasers" id="tab-btn-lasers">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                        Laser Head Units
+                    </button>
+                    <button class="mach-tab-btn" data-tab="replacement" id="tab-btn-replacement">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
+                        Replacement History
+                    </button>
+                    <button class="mach-tab-btn" data-tab="calibration" id="tab-btn-calibration">
                         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        Calibration
+                        Calibration History
                     </button>
-                    <button class="mach-tab-btn" data-tab="history">
+                    <button class="mach-tab-btn" data-tab="audit" id="tab-btn-audit">
                         <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
                         Audit History
                     </button>
-                    <button class="mach-tab-btn" data-tab="config">
+                    <button class="mach-tab-btn" data-tab="config" id="tab-btn-config">
                         <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
                         Configuration
                         <span class="tab-badge-lock">🔒</span>
@@ -301,7 +309,9 @@
 
                 <!-- Tab Body Content Panes -->
                 <div class="mach-modal-body">
-                    <!-- TAB 1: OVERVIEW -->
+                    <!-- ==========================================
+                         SECTION 1: OVERVIEW
+                         ========================================== -->
                     <div id="tab-overview" class="mach-tab-pane active">
                         <!-- Warning Operational Banner (Shown during WARNING state) -->
                         <div id="mach-warning-banner" class="recommendation-banner" style="display: none; margin-bottom: 20px; background: rgba(245, 158, 11, 0.12); border-color: var(--yellow); color: var(--yellow); padding: 14px 18px; font-weight: 700;">
@@ -398,27 +408,51 @@
                             </div>
                         </div>
 
-                        <!-- Laser Heads Container Section -->
-                        <div class="laser-heads-section">
-                            <div class="laser-heads-header">
-                                <div>
-                                    <h3 class="section-heading" style="margin:0;">Laser Head Units Status</h3>
-                                    <p style="font-size:13px; color:var(--muted); margin-top:2px;">Individual diode heads configuration and life remaining breakdown</p>
+                        <!-- Workspace Section Direct Jump Cards -->
+                        <div class="workspace-nav-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(220px, 1fr)); gap:14px; margin-top:20px;">
+                            <div class="workspace-nav-card glass-panel btn-jump-tab" data-target-tab="lasers" style="padding:16px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:var(--transition);">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div class="kpi-icon bg-blue" style="width:36px; height:36px;"><svg class="icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg></div>
+                                    <div>
+                                        <div style="font-size:14px; font-weight:800; color:var(--text);">Laser Head Units</div>
+                                        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Inspect diode heads & replace</div>
+                                    </div>
                                 </div>
-                                <button id="btn-add-laser-head" class="btn btn-primary btn-sm">
-                                    <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                                    + Add Laser Head
-                                </button>
+                                <span style="font-size:18px; color:var(--muted);">→</span>
                             </div>
-                            <div id="laser-heads-grid" class="laser-heads-grid">
-                                <!-- Populated dynamically by MachineController -->
+
+                            <div class="workspace-nav-card glass-panel btn-jump-tab" data-target-tab="replacement" style="padding:16px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:var(--transition);">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div class="kpi-icon bg-teal" style="width:36px; height:36px;"><svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg></div>
+                                    <div>
+                                        <div style="font-size:14px; font-weight:800; color:var(--text);">Replacement History</div>
+                                        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Diode swaps & generation logs</div>
+                                    </div>
+                                </div>
+                                <span style="font-size:18px; color:var(--muted);">→</span>
+                            </div>
+
+                            <div class="workspace-nav-card glass-panel btn-jump-tab" data-target-tab="calibration" style="padding:16px; border-radius:10px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; transition:var(--transition);">
+                                <div style="display:flex; align-items:center; gap:12px;">
+                                    <div class="kpi-icon bg-purple" style="width:36px; height:36px;"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div>
+                                    <div>
+                                        <div style="font-size:14px; font-weight:800; color:var(--text);">Calibration Center</div>
+                                        <div style="font-size:12px; color:var(--muted); margin-top:2px;">Meter synchronization & audit</div>
+                                    </div>
+                                </div>
+                                <span style="font-size:18px; color:var(--muted);">→</span>
                             </div>
                         </div>
                     </div>
 
-                    <div id="tab-health" class="mach-tab-pane">
+                    <!-- ==========================================
+                         SECTION 2: CURRENT LASER STATUS
+                         ========================================== -->
+                    <div id="tab-status" class="mach-tab-pane">
                         <div class="glass-panel mach-section-box">
                             <h3 class="section-heading">Laser Diode Health & Lifetime Analytics</h3>
+                            <p class="section-desc" style="font-size:13px; color:var(--muted); margin-bottom:20px;">Detailed diode degradation trajectory, operating hours accumulation, and preventive directives</p>
+                            
                             <div class="health-tab-grid">
                                 <div class="health-stat-card">
                                     <div class="hs-label">Health Percentage</div>
@@ -437,7 +471,6 @@
                                 </div>
                             </div>
 
-                            
                             <div class="progress-track" style="height:14px; margin: 24px 0 10px 0;">
                                 <div id="progressBar" class="progress-fill" style="width: 0%;"></div>
                             </div>
@@ -446,10 +479,12 @@
                                 <span id="scaleWarn">20,000 hrs (WARN)</span>
                                 <span id="scaleAlarm">25,000 hrs (ALARM)</span>
                             </div>
-                            <div id="recommendation" class="recommendation-banner" style="margin-bottom: 24px;">
+
+                            <div id="recommendation" class="recommendation-banner" style="margin: 20px 0;">
                                 Continue normal operation. Review during next preventive maintenance.
                             </div>
-<div class="health-trend-card glass-panel" style="margin-top:20px; padding:20px;">
+
+                            <div class="health-trend-card glass-panel" style="margin-top:20px; padding:20px;">
                                 <h4 style="font-size:15px; font-weight:700; margin-bottom:12px;">Operating Consumption Trajectory</h4>
                                 <p style="font-size:13px; color:var(--muted); margin-bottom:16px;">
                                     Continuous laser diode degradation curve mapped against rated limits.
@@ -466,13 +501,61 @@
                         </div>
                     </div>
 
-                    <!-- TAB 3: CALIBRATION -->
+                    <!-- ==========================================
+                         SECTION 3: LASER HEAD UNITS
+                         ========================================== -->
+                    <div id="tab-lasers" class="mach-tab-pane">
+                        <div class="glass-panel mach-section-box">
+                            <div class="laser-heads-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
+                                <div>
+                                    <h3 class="section-heading" style="margin:0;">Laser Head Units</h3>
+                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Individual diode heads configuration, real-time runtime, and unit lifecycle controls</p>
+                                </div>
+                                <button id="btn-add-laser-head" class="btn btn-primary btn-sm">
+                                    <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                                    + Add Laser Head
+                                </button>
+                            </div>
+                            <div id="laser-heads-grid" class="laser-heads-grid">
+                                <!-- Populated dynamically by MachineController -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==========================================
+                         SECTION 4: REPLACEMENT HISTORY
+                         ========================================== -->
+                    <div id="tab-replacement" class="mach-tab-pane">
+                        <div class="glass-panel mach-section-box">
+                            <div class="section-title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                                <div>
+                                    <h3 class="section-heading" style="margin:0;">Laser Diode Replacement History</h3>
+                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Permanent engineering lifecycle log of laser head diode unit swaps and baseline initializations</p>
+                                </div>
+                                <div id="repl-summary-badge" class="badge badge-info" style="font-size:11px; padding:4px 10px;">Permanent Lifecycle Log</div>
+                            </div>
+
+                            <!-- Replacement History Filter Pills -->
+                            <div class="history-filter-bar" id="repl-filter-bar" style="margin-bottom:16px;">
+                                <button class="history-pill active" data-repl-filter="ALL">All Laser Heads</button>
+                            </div>
+
+                            <!-- Replacement Timeline Container -->
+                            <div id="replacement-timeline-container" class="history-timeline">
+                                <!-- Populated dynamically by MachineController.renderReplacementHistory -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==========================================
+                         SECTION 5: CALIBRATION HISTORY
+                         ========================================== -->
                     <div id="tab-calibration" class="mach-tab-pane">
                         <div class="glass-panel mach-section-box">
-                            <div class="section-title-row">
+                            <div class="section-title-row" style="display:flex; justify-content:space-between; align-items:center;">
                                 <div>
-                                    <h3>Laser Hour Recalibration Center</h3>
-                                    <p class="section-desc">Physical meter baseline synchronization and accuracy calibration</p>
+                                    <h3 class="section-heading" style="margin:0;">Laser Hour Recalibration Center</h3>
+                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Physical meter baseline synchronization and accuracy calibration audit log</p>
                                 </div>
                                 <button id="btn-open-recalibrate-2" class="btn btn-primary btn-sm">
                                     <svg class="icon" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path></svg>
@@ -480,7 +563,7 @@
                                 </button>
                             </div>
 
-                            <div class="confidence-kpi-grid" style="margin-top:20px;">
+                            <div class="confidence-kpi-grid" style="margin-top:20px; margin-bottom:24px;">
                                 <div class="conf-kpi-card">
                                     <div class="conf-kpi-label">Estimated Laser Hour</div>
                                     <div id="conf-estimated-hour" class="conf-kpi-val" style="color:var(--primary)">12,500 hrs</div>
@@ -498,16 +581,37 @@
                                     <div id="conf-next-recal-2" class="conf-kpi-val">2026-07-28</div>
                                 </div>
                             </div>
+
+                            <div class="table-container glass-panel" style="padding:0; overflow:hidden;">
+                                <table class="data-table" style="width:100%; border-collapse:collapse;">
+                                    <thead>
+                                        <tr>
+                                            <th>Calibration Date</th>
+                                            <th>Laser Head</th>
+                                            <th>Engineer</th>
+                                            <th>Before (Est)</th>
+                                            <th>After (Actual)</th>
+                                            <th>Deviation</th>
+                                            <th>Result</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="calibration-tbody">
+                                        <!-- Populated dynamically by MachineController -->
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- TAB 4: HISTORY -->
-                    <div id="tab-history" class="mach-tab-pane">
+                    <!-- ==========================================
+                         SECTION 6: AUDIT HISTORY
+                         ========================================== -->
+                    <div id="tab-audit" class="mach-tab-pane">
                         <div class="glass-panel mach-section-box">
                             <div class="section-title-row" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
                                 <div>
-                                    <h3 class="section-heading" style="margin:0;">Laser Lifecycle & Machine History Timeline</h3>
-                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Chronological timeline of laser replacements, physical recalibrations, service events, and future forecast advisories</p>
+                                    <h3 class="section-heading" style="margin:0;">Machine Service & Audit History</h3>
+                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Chronological timeline of preventive maintenance, service events, and future forecast advisories</p>
                                 </div>
                                 <button id="btn-add-record" class="btn btn-secondary btn-sm">
                                     <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
@@ -531,13 +635,15 @@
                         </div>
                     </div>
 
-                    <!-- TAB 5: CONFIGURATION (Engineer Mode Only) -->
+                    <!-- ==========================================
+                         SECTION 7: CONFIGURATION (Engineer Mode Only)
+                         ========================================== -->
                     <div id="tab-config" class="mach-tab-pane">
                         <div id="config-engineer-gate" class="glass-panel mach-section-box">
                             <div class="section-title-row">
                                 <div>
-                                    <h3>Machine Configuration Parameters</h3>
-                                    <p class="section-desc">Editable identity parameters for machine routing and department tracking</p>
+                                    <h3 class="section-heading" style="margin:0;">Machine Configuration Parameters</h3>
+                                    <p class="section-desc" style="font-size:13px; color:var(--muted); margin-top:2px;">Editable identity parameters for machine routing and department tracking</p>
                                 </div>
                                 <span class="badge badge-engineer">Engineer Access Only</span>
                             </div>
@@ -1120,6 +1226,90 @@
             <div class="modal-footer">
                 <button id="btn-cancel-maint-modal" class="btn btn-secondary">Cancel</button>
                 <button id="btn-submit-maint-record" class="btn btn-primary">Save Service Log</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================
+         MODAL: SHARE FLEET & MACHINE STATUS (SHARE FOUNDATION)
+    ===================================================== -->
+    <div id="share-modal-overlay" class="modal-overlay">
+        <div class="modal-content glass-panel" style="max-width: 520px;">
+            <div class="modal-header">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 34px; height: 34px; border-radius: 10px; background: rgba(56, 189, 248, 0.15); display: flex; align-items: center; justify-content: center; color: var(--primary);">
+                        <svg class="icon" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                    </div>
+                    <div>
+                        <h3 id="share-modal-title" style="margin: 0; font-size: 16px; font-weight: 800; color: var(--text);">Share System Status</h3>
+                        <p id="share-modal-subtitle" style="margin: 0; font-size: 12px; color: var(--muted);">Export or distribute real-time laser metrics to team</p>
+                    </div>
+                </div>
+                <button id="btn-close-share-modal" class="modal-close">&times;</button>
+            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 10px; padding: 18px 24px;">
+                <!-- WhatsApp Option -->
+                <button id="btn-share-whatsapp" class="share-option-btn" type="button">
+                    <div class="share-opt-icon share-opt-wa">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></svg>
+                    </div>
+                    <div class="share-opt-text">
+                        <span class="share-opt-title">WhatsApp</span>
+                        <span class="share-opt-desc">Send fleet status summary and alarm alerts directly via WhatsApp</span>
+                    </div>
+                    <svg class="icon share-opt-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+
+                <!-- Email Option -->
+                <button id="btn-share-email" class="share-option-btn" type="button">
+                    <div class="share-opt-icon share-opt-email">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    </div>
+                    <div class="share-opt-text">
+                        <span class="share-opt-title">Email Report</span>
+                        <span class="share-opt-desc">Compose email draft with complete laser operational parameters</span>
+                    </div>
+                    <svg class="icon share-opt-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+
+                <!-- Copy Link Option -->
+                <button id="btn-share-copylink" class="share-option-btn" type="button">
+                    <div class="share-opt-icon share-opt-link">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                    </div>
+                    <div class="share-opt-text">
+                        <span class="share-opt-title">Copy Link</span>
+                        <span class="share-opt-desc">Copy workspace URL to clipboard for fast team access</span>
+                    </div>
+                    <svg class="icon share-opt-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+
+                <!-- Print Option -->
+                <button id="btn-share-print" class="share-option-btn" type="button">
+                    <div class="share-opt-icon share-opt-print">
+                        <svg class="icon" viewBox="0 0 24 24"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                    </div>
+                    <div class="share-opt-text">
+                        <span class="share-opt-title">Print</span>
+                        <span class="share-opt-desc">Send current engineering view or fleet matrix to printer</span>
+                    </div>
+                    <svg class="icon share-opt-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+
+                <!-- Download PDF / Export CSV Option -->
+                <button id="btn-share-pdf" class="share-option-btn" type="button">
+                    <div class="share-opt-icon share-opt-pdf">
+                        <svg class="icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    </div>
+                    <div class="share-opt-text">
+                        <span class="share-opt-title">Download PDF / Export CSV</span>
+                        <span class="share-opt-desc">Save structured report dataset for archival or compliance audits</span>
+                    </div>
+                    <svg class="icon share-opt-arrow" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
+            </div>
+            <div class="modal-footer">
+                <button id="btn-cancel-share-modal" class="btn btn-secondary" style="width: 100%;">Close</button>
             </div>
         </div>
     </div>

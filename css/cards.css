@@ -161,6 +161,54 @@
     text-align: right;
 }
 
+/* Card Footer & Action Buttons */
+.mc-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--glass-border);
+}
+
+.mc-action-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btn-mc-action {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--muted);
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-mc-action .icon {
+    width: 13px;
+    height: 13px;
+}
+
+.btn-mc-action:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text);
+    border-color: var(--glass-border-highlight);
+}
+
+.btn-mc-delete:hover {
+    background: rgba(239, 68, 68, 0.15);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: var(--red);
+}
+
 /* =====================================================
    MULTI-LASER ARCHITECTURE STYLES
    ===================================================== */
@@ -342,113 +390,122 @@
     color: var(--red);
 }
 
-/* Laser Head Installation & Replacement History */
-.lhc-history-details {
-    background: var(--input-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 8px;
-    overflow: hidden;
-    margin-top: 2px;
-    font-size: 11px;
-}
-.lhc-history-summary {
-    padding: 6px 10px;
-    cursor: pointer;
-    font-weight: 700;
-    color: var(--text);
+/* Laser Head Installation & Replacement History Timeline */
+.repl-timeline {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    user-select: none;
-    background: rgba(255, 255, 255, 0.03);
+    flex-direction: column;
+    gap: 16px;
+    position: relative;
+    padding-left: 28px;
+}
+.repl-timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 14px;
+    bottom: 14px;
+    width: 2px;
+    background: var(--glass-border);
+}
+.repl-card {
+    position: relative;
+    padding: 16px 18px;
+    border-radius: 10px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
     transition: var(--transition);
 }
-.lhc-history-summary:hover {
-    background: rgba(255, 255, 255, 0.07);
-    color: var(--primary);
+.repl-card:hover {
+    border-color: var(--primary);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
 }
-.lhc-history-content {
-    padding: 8px 10px;
-    border-top: 1px solid var(--glass-border);
+.repl-node {
+    position: absolute;
+    left: -28px;
+    top: 18px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--bg);
+    border: 2px solid var(--primary);
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
 }
-.lhc-install-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4px 8px;
-    background: rgba(255, 255, 255, 0.02);
-    padding: 6px 8px;
-    border-radius: 6px;
-    border: 1px solid rgba(255, 255, 255, 0.05);
+.repl-node-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+    box-shadow: 0 0 8px var(--primary);
 }
-.lhc-install-field {
-    display: flex;
-    flex-direction: column;
-}
-.lhc-install-label {
-    font-size: 9px;
-    color: var(--muted);
-    font-weight: 700;
-    text-transform: uppercase;
-}
-.lhc-install-val {
-    font-size: 11px;
-    font-weight: 700;
-    color: var(--text);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-.lhc-repl-section-title {
-    font-size: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    color: var(--muted);
-    margin-top: 2px;
-}
-.lhc-repl-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-height: 180px;
-    overflow-y: auto;
-}
-.lhc-repl-item {
-    background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--glass-border);
-    border-radius: 6px;
-    padding: 6px 8px;
-}
-.lhc-repl-header {
+.repl-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 3px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 10px;
 }
-.lhc-repl-date {
-    font-weight: 700;
-    color: var(--primary);
+.repl-title-group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
-.lhc-repl-stats {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2px 6px;
+.repl-title {
+    font-size: 15px;
+    font-weight: 800;
     color: var(--text);
-    font-size: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-.lhc-repl-notes {
-    font-size: 10px;
+.repl-meta {
+    font-size: 12px;
     color: var(--muted);
-    margin-top: 3px;
-    line-height: 1.3;
 }
-.lhc-repl-empty {
+.repl-badge-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.repl-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+    background: var(--input-bg);
+    padding: 12px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 12px;
+}
+.repl-metric-item {
+    display: flex;
+    flex-direction: column;
+}
+.repl-metric-label {
     font-size: 10px;
+    text-transform: uppercase;
+    font-weight: 700;
     color: var(--muted);
-    font-style: italic;
-    padding: 2px 0;
+    letter-spacing: 0.5px;
+}
+.repl-metric-val {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text);
+    margin-top: 2px;
+}
+.repl-notes-box {
+    font-size: 12px;
+    color: var(--text);
+    background: rgba(255, 255, 255, 0.02);
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    line-height: 1.45;
 }
 

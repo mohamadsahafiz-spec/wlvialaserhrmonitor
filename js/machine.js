@@ -160,15 +160,18 @@ export const MachineController = {
         // Render Laser Heads Grid
         this.renderLaserHeadsGrid(machine, metrics, evalTime, callbacks);
 
-        // Render Unified History Timeline
+        // Render Permanent Replacement History Timeline
+        this.renderReplacementHistory(machine, null, this.activeReplFilter || 'ALL');
+
+        // Render Calibration Table
+        const calibTable = document.getElementById('calibration-tbody');
+        if (calibTable) this.renderCalibrationHistory(machine, calibTable);
+
+        // Render Unified History Timeline for Audit Tab
         const timelineContainer = document.getElementById('machine-unified-timeline');
         if (timelineContainer) {
             this.renderUnifiedTimeline(machine, timelineContainer, this.activeHistoryFilter || 'ALL', evalTime);
         }
-
-        // Render Calibration Table (if present in calibration tab)
-        const calibTable = document.getElementById('calibration-tbody');
-        if (calibTable) this.renderCalibrationHistory(machine, calibTable);
 
         const maintTable = document.getElementById('maintenance-tbody');
         if (maintTable) this.renderMaintenanceLog(machine, maintTable);
@@ -180,6 +183,7 @@ export const MachineController = {
 
     /**
      * Render dynamic grid of individual laser heads for the machine.
+     * Highly readable, uncluttered industrial cards.
      */
     renderLaserHeadsGrid(machine, machineMetrics, evalTime, callbacks = {}) {
         const container = document.getElementById('laser-heads-grid');
@@ -189,7 +193,7 @@ export const MachineController = {
 
         const laserList = machineMetrics.laserMetricsList || [];
 
-        laserList.forEach((lm, idx) => {
+        laserList.forEach((lm) => {
             let badgeClass = 'color-safe', dotColor = 'var(--green)';
             if (lm.status === 'WARNING') { badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; }
             if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
@@ -211,52 +215,19 @@ export const MachineController = {
                 countdownText = lm.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d remaining`;
             }
 
-            const replaceByDateText = lm.eolDate && lm.eolDate !== '—' ? lm.eolDate : 'N/A';
             const lastRecalText = lm.lastRecalibrationDate ? formatDate(lm.lastRecalibrationDate) : (lm.baseTimestamp ? formatDate(lm.baseTimestamp) : 'Initial Baseline');
-
-            const genNumber = lm.generation || (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1);
-
-            const installedDateText = (lm.installedDate || lm.baseTimestamp) ? formatDate(lm.installedDate || lm.baseTimestamp) : '—';
-            const installedByText = lm.installedBy || lm.lastEngineer || 'Service Specialist';
-            const baselineHoursText = (lm.baseLaserHour !== null && lm.baseLaserHour !== undefined) ? `${lm.baseLaserHour} hrs` : '0 hrs';
-
-            const replHistory = Array.isArray(lm.replacementHistory) ? lm.replacementHistory : (Array.isArray(lm.lifecycleHistory) ? lm.lifecycleHistory : []);
-            const replCount = replHistory.length;
-
-            const replItemsHtml = replCount > 0 ? replHistory.map(rec => {
-                const rDate = rec.replacementDate || rec.date || rec.timestamp;
-                const dateStr = rDate ? formatDate(rDate) : '—';
-                const prevHrs = rec.previousRuntime !== undefined ? `${rec.previousRuntime} hrs` : '—';
-                const baseHrs = rec.newBaselineHours !== undefined ? `${rec.newBaselineHours} hrs` : '0 hrs';
-                const eng = rec.engineer || 'Service Specialist';
-                const note = rec.reason ? (rec.notes ? `${rec.reason} • ${rec.notes}` : rec.reason) : (rec.notes || '');
-
-                return `
-                    <div class="lhc-repl-item">
-                        <div class="lhc-repl-header">
-                            <span class="lhc-repl-date">${dateStr}</span>
-                            <span class="badge badge-info" style="font-size:8px; padding:1px 4px;">Gen ${rec.generation || 1}</span>
-                        </div>
-                        <div class="lhc-repl-stats">
-                            <div><span style="color:var(--muted)">Prev:</span> <strong>${prevHrs}</strong></div>
-                            <div><span style="color:var(--muted)">New Base:</span> <strong>${baseHrs}</strong></div>
-                            <div style="grid-column: 1 / -1;"><span style="color:var(--muted)">By:</span> <strong>${eng}</strong></div>
-                        </div>
-                        ${note ? `<div class="lhc-repl-notes">${note}</div>` : ''}
-                    </div>
-                `;
-            }).join('') : `<div class="lhc-repl-empty">Active Gen 1 • No prior replacements recorded</div>`;
+            const genNumber = lm.generation || (lm.replacementHistory ? lm.replacementHistory.length + 1 : (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1));
 
             const contingencyInfoHtml = lm.isContingencyActive ? `
-                <div style="margin-top: 10px; padding: 8px 10px; background: rgba(239, 68, 68, 0.15); border: 1px solid var(--red); border-radius: 6px; font-size: 11px; color: #fca5a5; font-weight: 700; line-height: 1.4;">
+                <div style="padding: 6px 10px; background: rgba(239, 68, 68, 0.12); border: 1px solid var(--red); border-radius: 6px; font-size: 11px; color: #fca5a5; font-weight: 700; line-height: 1.35;">
                     <div style="color: var(--red); font-weight: 800; margin-bottom: 2px;">🚨 RECOMMENDED LIFE EXCEEDED</div>
-                    Exceeded By: <strong>${lm.hoursExceeded} hrs</strong> | Contingency Margin: <strong>${lm.contingencyMargin} hrs</strong>
+                    Exceeded By: <strong>${lm.hoursExceeded} hrs</strong> • Contingency Margin: <strong>${lm.contingencyMargin} hrs</strong>
                 </div>
             ` : '';
 
             const baselineInfoHtml = lm.status === 'BASELINE_REQUIRED' ? `
-                <div style="margin-top: 10px; padding: 8px 10px; background: rgba(59, 130, 246, 0.15); border: 1px solid #3b82f6; border-radius: 6px; font-size: 11px; color: #93c5fd; font-weight: 600; line-height: 1.4;">
-                    Record the current physical laser hour-meter reading and capture date/time to begin automatic runtime estimation.
+                <div style="padding: 6px 10px; background: rgba(59, 130, 246, 0.12); border: 1px solid #3b82f6; border-radius: 6px; font-size: 11px; color: #93c5fd; font-weight: 600; line-height: 1.35;">
+                    Physical baseline hour required to initialize runtime tracking.
                 </div>
             ` : '';
 
@@ -277,69 +248,32 @@ export const MachineController = {
 
                 <div class="lhc-stats">
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Current Hour</span>
+                        <span class="lhc-stat-label">Current Runtime</span>
                         <span class="lhc-stat-val">${currentHrsText}</span>
                     </div>
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Remaining Hr</span>
+                        <span class="lhc-stat-label">Remaining Hours</span>
                         <span class="lhc-stat-val ${badgeClass}">${remainText}</span>
                     </div>
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Replace By</span>
-                        <span class="lhc-stat-val" style="font-size:12px;">${replaceByDateText}</span>
-                    </div>
-                    <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Countdown</span>
+                        <span class="lhc-stat-label">Replacement Countdown</span>
                         <span class="lhc-stat-val ${lm.remainingTotal < 0 ? 'color-alarm' : ''}" style="font-size:12px;">${countdownText}</span>
                     </div>
                     <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Accuracy</span>
-                        <span class="lhc-stat-val" style="font-size:11px; margin-top:2px;">${lm.accuracy.label}</span>
-                    </div>
-                    <div class="lhc-stat-item">
-                        <span class="lhc-stat-label">Last Recal</span>
+                        <span class="lhc-stat-label">Last Calibration</span>
                         <span class="lhc-stat-val" style="font-size:11px; margin-top:2px;">${lastRecalText}</span>
                     </div>
                 </div>
 
                 <div class="lhc-progress-box">
                     <div class="lhc-progress-meta">
-                        <span>Life Remaining</span>
+                        <span>Rated Capacity Remaining</span>
                         <strong style="color:${dotColor}">${lm.baselineRequired ? '—' : (lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining)}</strong>
                     </div>
                     <div class="mini-health-track" style="width:100%; height:8px;">
                         <div class="mini-health-fill" style="width:${(lm.baselineRequired || lm.isContingencyActive) ? 0 : (lm.lifeRemainingPercent || 0)}%; background:${dotColor};"></div>
                     </div>
                 </div>
-
-                <!-- Laser Installation & Replacement History Details -->
-                <details class="lhc-history-details">
-                    <summary class="lhc-history-summary">
-                        <span>Installation & History</span>
-                        <span class="badge ${replCount > 0 ? 'badge-info' : 'badge-neutral'}" style="font-size:8px; padding:1px 5px;">${replCount} ${replCount === 1 ? 'Replacement' : 'Replacements'}</span>
-                    </summary>
-                    <div class="lhc-history-content">
-                        <div class="lhc-install-grid">
-                            <div class="lhc-install-field">
-                                <span class="lhc-install-label">Installed Date</span>
-                                <span class="lhc-install-val">${installedDateText}</span>
-                            </div>
-                            <div class="lhc-install-field">
-                                <span class="lhc-install-label">Installed By</span>
-                                <span class="lhc-install-val">${installedByText}</span>
-                            </div>
-                            <div class="lhc-install-field" style="grid-column: 1 / -1;">
-                                <span class="lhc-install-label">Current Baseline</span>
-                                <span class="lhc-install-val">${baselineHoursText}</span>
-                            </div>
-                        </div>
-
-                        <div class="lhc-repl-section-title">Replacement History (Newest First)</div>
-                        <div class="lhc-repl-list">
-                            ${replItemsHtml}
-                        </div>
-                    </div>
-                </details>
 
                 ${baselineInfoHtml}
                 ${contingencyInfoHtml}
@@ -598,6 +532,7 @@ export const MachineController = {
     },
 
     activeHistoryFilter: 'ALL',
+    activeReplFilter: 'ALL',
 
     setHistoryFilter(filter) {
         this.activeHistoryFilter = filter || 'ALL';
@@ -611,6 +546,141 @@ export const MachineController = {
                 }
             });
         }
+    },
+
+    /**
+     * Render permanent engineering Replacement History timeline.
+     * Displays newest first with full details: Date, Engineer, Previous Runtime, New Baseline, Notes, Reason, Serial.
+     */
+    renderReplacementHistory(machine, containerElement = null, filterLaserId = 'ALL') {
+        const container = containerElement || document.getElementById('replacement-timeline-container');
+        if (!container) return;
+
+        this.activeReplFilter = filterLaserId || 'ALL';
+
+        // 1. Setup Filter Bar
+        const filterBar = document.getElementById('repl-filter-bar');
+        if (filterBar && Array.isArray(machine.lasers)) {
+            filterBar.innerHTML = '';
+            
+            const allBtn = document.createElement('button');
+            allBtn.className = `history-pill ${this.activeReplFilter === 'ALL' ? 'active' : ''}`;
+            allBtn.setAttribute('data-repl-filter', 'ALL');
+            allBtn.textContent = 'All Laser Heads';
+            filterBar.appendChild(allBtn);
+
+            machine.lasers.forEach(l => {
+                const pill = document.createElement('button');
+                pill.className = `history-pill ${this.activeReplFilter === l.id ? 'active' : ''}`;
+                pill.setAttribute('data-repl-filter', l.id);
+                pill.textContent = l.name || 'Laser Head';
+                filterBar.appendChild(pill);
+            });
+        }
+
+        // 2. Aggregate all replacement records
+        const allReplacements = [];
+
+        if (Array.isArray(machine.lasers)) {
+            machine.lasers.forEach(laser => {
+                if (this.activeReplFilter !== 'ALL' && laser.id !== this.activeReplFilter) return;
+
+                const replList = Array.isArray(laser.replacementHistory) ? laser.replacementHistory : (Array.isArray(laser.lifecycleHistory) ? laser.lifecycleHistory : []);
+
+                replList.forEach(rec => {
+                    allReplacements.push({
+                        id: rec.id || `repl-${Date.now()}-${Math.random()}`,
+                        laserId: laser.id,
+                        laserName: laser.name || 'Laser Head',
+                        laserSerial: laser.serialNo || machine.serialNo || 'N/A',
+                        generation: rec.generation || 1,
+                        nextGeneration: (rec.generation ? rec.generation + 1 : 2),
+                        date: rec.replacementDate || rec.date || rec.timestamp || rec.retiredDate || 'N/A',
+                        engineer: rec.engineer || 'Optics Specialist',
+                        previousRuntime: rec.previousRuntime !== undefined ? rec.previousRuntime : (rec.retiredHours !== undefined ? rec.retiredHours : '—'),
+                        newBaselineHours: rec.newBaselineHours !== undefined ? rec.newBaselineHours : (rec.baseLaserHour !== undefined ? rec.baseLaserHour : 0),
+                        reason: rec.reason || 'Lifecycle Limit Reached',
+                        notes: rec.notes || ''
+                    });
+                });
+            });
+        }
+
+        // Sort descending (newest first)
+        allReplacements.sort((a, b) => {
+            const timeA = new Date(a.date || 0).getTime() || 0;
+            const timeB = new Date(b.date || 0).getTime() || 0;
+            return timeB - timeA;
+        });
+
+        // Update summary badge
+        const summaryBadge = document.getElementById('repl-summary-badge');
+        if (summaryBadge) {
+            summaryBadge.textContent = `${allReplacements.length} ${allReplacements.length === 1 ? 'Replacement Logged' : 'Replacements Logged'}`;
+        }
+
+        container.innerHTML = '';
+
+        if (allReplacements.length === 0) {
+            container.innerHTML = `
+                <div style="text-align:center; padding:36px 16px; color:var(--muted); font-size:13px;" class="glass-panel">
+                    <svg class="icon" viewBox="0 0 24 24" style="width:36px;height:36px;margin-bottom:8px;stroke:var(--muted);opacity:0.6;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+                    <div style="font-weight:700; color:var(--text); margin-bottom:4px;">No Laser Diode Replacements Recorded</div>
+                    <div>Active laser heads are currently operating on their original Gen 1 factory baseline.</div>
+                </div>
+            `;
+            return;
+        }
+
+        const timelineList = document.createElement('div');
+        timelineList.className = 'repl-timeline';
+
+        allReplacements.forEach(rec => {
+            const formattedDate = rec.date ? formatDate(rec.date) : '—';
+            const card = document.createElement('div');
+            card.className = 'repl-card';
+            card.innerHTML = `
+                <div class="repl-node">
+                    <div class="repl-node-dot"></div>
+                </div>
+                <div class="repl-header">
+                    <div class="repl-title-group">
+                        <div class="repl-title">
+                            <span>${rec.laserName}</span>
+                            <span class="badge badge-info" style="font-size:10px; font-weight:700;">Gen ${rec.generation} → Gen ${rec.nextGeneration}</span>
+                        </div>
+                        <div class="repl-meta">Serial: <strong>${rec.laserSerial}</strong> • Replaced on <strong>${formattedDate}</strong></div>
+                    </div>
+                    <div class="repl-badge-group">
+                        <span class="badge badge-engineer" style="font-size:11px;">👤 ${rec.engineer}</span>
+                    </div>
+                </div>
+
+                <div class="repl-metrics-grid">
+                    <div class="repl-metric-item">
+                        <span class="repl-metric-label">Previous Runtime</span>
+                        <span class="repl-metric-val" style="color:var(--yellow);">${rec.previousRuntime} hrs</span>
+                    </div>
+                    <div class="repl-metric-item">
+                        <span class="repl-metric-label">New Baseline</span>
+                        <span class="repl-metric-val" style="color:var(--green);">${rec.newBaselineHours} hrs</span>
+                    </div>
+                    <div class="repl-metric-item" style="grid-column: 1 / -1;">
+                        <span class="repl-metric-label">Engineering Reason</span>
+                        <span class="repl-metric-val" style="font-size:13px; font-weight:700;">${rec.reason}</span>
+                    </div>
+                </div>
+
+                ${rec.notes ? `
+                <div class="repl-notes-box">
+                    <strong style="color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:2px;">Service Notes:</strong>
+                    ${rec.notes}
+                </div>` : ''}
+            `;
+            timelineList.appendChild(card);
+        });
+
+        container.appendChild(timelineList);
     },
 
     renderUnifiedTimeline(machine, containerElement, filter = 'ALL', evalTime = new Date()) {
@@ -849,17 +919,20 @@ export const MachineController = {
                     dateStr = rec.date;
                 }
             }
-            const diffText = rec.difference > 0 ? `+${rec.difference} hrs` : `${rec.difference} hrs`;
-            const diffColor = Math.abs(rec.difference) <= 25 ? 'var(--green)' : (Math.abs(rec.difference) <= 100 ? 'var(--yellow)' : 'var(--red)');
+            const diffNum = Number(rec.difference) || 0;
+            const diffText = diffNum > 0 ? `+${diffNum} hrs` : `${diffNum} hrs`;
+            const diffColor = Math.abs(diffNum) <= 25 ? 'var(--green)' : (Math.abs(diffNum) <= 100 ? 'var(--yellow)' : 'var(--red)');
+            const badgeType = Math.abs(diffNum) <= 25 ? 'badge-safe' : (Math.abs(diffNum) <= 100 ? 'badge-warning' : 'badge-danger');
+            const ratingText = rec.rating || (Math.abs(diffNum) <= 25 ? 'OPTIMAL' : (Math.abs(diffNum) <= 100 ? 'MODERATE DRIFT' : 'CRITICAL DRIFT'));
 
             tr.innerHTML = `
                 <td>${dateStr}</td>
                 <td><strong style="color:var(--text)">${rec.laserName || 'Laser Head'}</strong></td>
+                <td><span class="timeline-engineer" style="font-size:12px; font-weight:600;">${rec.engineer || 'Service Specialist'}</span></td>
                 <td><strong>${Number(rec.estimatedHour)} hrs</strong></td>
                 <td><strong>${Number(rec.actualHour)} hrs</strong></td>
                 <td style="color:${diffColor}; font-weight:700;">${diffText}</td>
-                <td>${rec.reason || 'Manual Verification'}</td>
-                <td><span class="badge badge-info" style="font-size:11px;">${rec.rating || 'OPTIMAL'}</span></td>
+                <td><span class="badge ${badgeType}" style="font-size:10px; font-weight:700;">${ratingText}</span></td>
             `;
             tbodyElement.appendChild(tr);
         });
