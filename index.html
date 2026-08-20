@@ -26,7 +26,7 @@
 <body>
 
     <!-- =====================================================
-         HEADER / NAVIGATION TITLE BAR
+         ZONE A: APPLICATION IDENTITY & COMMAND BAR
     ===================================================== -->
     <header class="app-header">
         <div class="header-content">
@@ -34,24 +34,30 @@
                 <div class="logo-box">
                     <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                 </div>
-                <div>
-                    <h1 id="app-header-title">Laser Management System</h1>
-                    <div class="subtitle">Laser Lifetime & Hour Recalibration Engine • Version 1.0</div>
+                <div class="brand-text">
+                    <div class="brand-title-row">
+                        <span class="brand-acronym">LMS</span>
+                        <span class="brand-version-badge">v2.0</span>
+                        <h1 id="app-header-title" class="brand-full-name">Laser Management System</h1>
+                    </div>
+                    <div class="subtitle">Semiconductor Telemetry & Operating Hour Recalibration OS</div>
                 </div>
             </div>
 
-            <nav class="nav-links">
-                <a href="#" id="nav-fleet" class="nav-item active">
-                    <svg class="icon nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    Fleet Overview
-                </a>
-                <a href="#" id="nav-settings" class="nav-item">
-                    <svg class="icon nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    Settings
-                </a>
-            </nav>
-
             <div class="header-controls">
+                <!-- Navigation Switcher (Desktop Engineering Segment) -->
+                <nav class="nav-links">
+                    <a href="#" id="nav-fleet" class="nav-item active" title="Fleet Telemetry Overview">
+                        <svg class="icon nav-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+                        <span>Fleet Overview</span>
+                    </a>
+                    <a href="#" id="nav-settings" class="nav-item" title="System Settings & Configurations">
+                        <svg class="icon nav-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                        <span>Settings</span>
+                    </a>
+                </nav>
+
+                <!-- Engineer Profile / Mode Toggle -->
                 <button id="btn-toggle-mode" class="user-profile-btn" title="Click to switch access mode">
                     <div class="user-avatar avatar-engineer">E</div>
                     <div class="user-info">
@@ -60,6 +66,8 @@
                     </div>
                     <svg class="icon user-dropdown-icon" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
                 </button>
+
+                <!-- System Theme Switcher -->
                 <button id="btn-theme" class="btn-icon theme-toggle-btn" title="Toggle Light/Dark Theme">
                     <svg class="icon icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
                     <svg class="icon icon-moon hidden" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
@@ -71,73 +79,87 @@
     <main class="app-container">
 
         <!-- =====================================================
-             VIEW 1: FLEET OVERVIEW DASHBOARD
+             VIEW 1: FLEET MISSION CONTROL
         ===================================================== -->
         <section id="view-fleet" class="fleet-view">
 
-            <!-- Compact Fleet Status Panel -->
-            <div id="fleet-stats-panel" class="fleet-status-compact-panel glass-panel" style="margin-bottom: 20px;">
-                <div class="fsc-metrics">
-                    <div class="fsc-item" title="Machines in optimal operational status">
-                        <span class="fsc-dot bg-safe" style="box-shadow: 0 0 8px var(--green);"></span>
-                        <div class="fsc-text">
-                            <span class="fsc-label">HEALTHY</span>
-                            <span id="stat-safe-count" class="fsc-value color-safe">0</span>
+            <!-- =====================================================
+                 1. FLEET TELEMETRY STRIP (Mission Control Telemetry)
+            ===================================================== -->
+            <div id="fleet-stats-panel" class="fleet-telemetry-strip">
+                <div class="telemetry-metrics-row">
+                    <!-- 1. Healthy Telemetry -->
+                    <div class="telemetry-module tm-healthy" title="Machines in optimal operational status">
+                        <div class="tm-header">
+                            <span class="tm-label">HEALTHY</span>
+                            <span class="tm-led bg-safe"></span>
+                        </div>
+                        <div class="tm-body">
+                            <span id="stat-safe-count" class="tm-value color-safe">0</span>
+                            <span class="tm-sub">Normal Operation</span>
                         </div>
                     </div>
-                    <div class="fsc-item" title="Machines approaching 80% rated life threshold">
-                        <span class="fsc-dot bg-warning" style="box-shadow: 0 0 8px var(--yellow);"></span>
-                        <div class="fsc-text">
-                            <span class="fsc-label">WARNING</span>
-                            <span id="stat-warn-count" class="fsc-value color-warning">0</span>
+
+                    <!-- 2. Warning Telemetry -->
+                    <div class="telemetry-module tm-warning" title="Machines approaching 80% rated life threshold">
+                        <div class="tm-header">
+                            <span class="tm-label">WARNING</span>
+                            <span class="tm-led bg-warning"></span>
+                        </div>
+                        <div class="tm-body">
+                            <span id="stat-warn-count" class="tm-value color-warning">0</span>
+                            <span class="tm-sub">≥80% Threshold</span>
                         </div>
                     </div>
-                    <div class="fsc-item" title="Machines exceeding rated life limit / contingency active">
-                        <span class="fsc-dot bg-alarm" style="box-shadow: 0 0 8px var(--red);"></span>
-                        <div class="fsc-text">
-                            <span class="fsc-label">ALARM</span>
-                            <span id="stat-alarm-count" class="fsc-value color-alarm">0</span>
+
+                    <!-- 3. Alarm Telemetry -->
+                    <div class="telemetry-module tm-alarm" title="Machines exceeding rated life limit / contingency active">
+                        <div class="tm-header">
+                            <span class="tm-label">ALARM</span>
+                            <span class="tm-led bg-alarm"></span>
+                        </div>
+                        <div class="tm-body">
+                            <span id="stat-alarm-count" class="tm-value color-alarm">0</span>
+                            <span class="tm-sub">Immediate Action</span>
                         </div>
                     </div>
-                    <div class="fsc-item" title="Fleet average laser life remaining capacity">
-                        <div class="fsc-text">
-                            <span class="fsc-label">FLEET HEALTH</span>
-                            <span id="stat-avg-health" class="fsc-value color-primary">--%</span>
+
+                    <!-- 4. Fleet Health Telemetry -->
+                    <div class="telemetry-module tm-health" title="Fleet average laser life remaining capacity">
+                        <div class="tm-header">
+                            <span class="tm-label">FLEET HEALTH</span>
+                            <svg class="icon tm-icon" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                        </div>
+                        <div class="tm-body">
+                            <span id="stat-avg-health" class="tm-value color-primary">--%</span>
+                            <span class="tm-sub">Avg Remaining Life</span>
                         </div>
                     </div>
                 </div>
 
-                <div class="fsc-insight" title="Automated Real-Time Diagnostic Recommendation">
-                    <div class="fsc-insight-badge">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:14px;height:14px;stroke:var(--primary);"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
-                        <span>AI INSIGHT</span>
+                <!-- Integrated SCADA Diagnostic Readout Strip -->
+                <div class="telemetry-diagnostic-strip" title="Automated Real-Time Diagnostic Telemetry">
+                    <div class="telemetry-badge">
+                        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                        <span>SCADA TELEMETRY</span>
                     </div>
-                    <div id="stat-ai-insight" class="fsc-insight-text">
+                    <div id="stat-ai-insight" class="telemetry-readout-text">
                         Fleet optimal. All monitored laser diodes within safe baseline operational bounds.
                     </div>
                 </div>
             </div>
 
-            <!-- Compressed Fleet Toolbar: Simulation Date | Search | Filters | Sort | + Add Machine -->
-            <div class="toolbar glass-panel">
-                <!-- 1. Simulation Date -->
-                <div class="sim-date-chip" title="Set simulated current evaluation date">
-                    <div class="sim-chip-icon">
-                        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    </div>
-                    <div class="sim-chip-body">
-                        <label for="todayDate" class="sim-chip-label">Simulation Date</label>
-                        <input type="date" id="todayDate" class="sim-chip-input">
-                    </div>
-                </div>
-
-                <!-- 2. Search -->
-                <div class="search-box">
+            <!-- =====================================================
+                 2. ENGINEERING COMMAND BAR (Search | Filter | Sort | Sim Date | + Add Machine)
+            ===================================================== -->
+            <div class="engineering-command-bar">
+                <!-- 1. Search -->
+                <div class="command-search-box">
                     <svg class="icon search-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                    <input type="text" id="filter-search" class="input-control" placeholder="Search machine no, serial, model...">
+                    <input type="text" id="filter-search" class="input-control" placeholder="Search machine no, serial, model, dept...">
                 </div>
 
-                <!-- 3. Unified Filters Dropdown -->
+                <!-- 2. Filter Popover -->
                 <div class="filter-dropdown-wrapper">
                     <button id="btn-toggle-filters" class="btn btn-secondary filter-btn" type="button" title="Filter by Status, Model, and Department">
                         <svg class="icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
@@ -147,7 +169,7 @@
                     </button>
                     <div id="filter-popover-menu" class="filter-popover hidden">
                         <div class="filter-popover-header">
-                            <span style="font-weight:700; font-size:12px; text-transform:uppercase; color:var(--text); letter-spacing:0.5px;">Active Filters</span>
+                            <span class="filter-popover-title">Active Filters</span>
                             <button id="btn-clear-filters" class="filter-clear-btn" type="button">Reset All</button>
                         </div>
                         <div class="filter-popover-body">
@@ -181,8 +203,8 @@
                     </div>
                 </div>
 
-                <!-- 4. Sort -->
-                <div class="sort-wrapper">
+                <!-- 3. Sort -->
+                <div class="command-sort-wrapper">
                     <select id="filter-sort" class="input-control">
                         <option value="no-asc">Sort: Machine No (A-Z)</option>
                         <option value="no-desc">Sort: Machine No (Z-A)</option>
@@ -198,23 +220,36 @@
                     </select>
                 </div>
 
+                <!-- 4. Simulation Date -->
+                <div class="sim-date-chip" title="Set simulated current evaluation date">
+                    <div class="sim-chip-icon">
+                        <svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    </div>
+                    <div class="sim-chip-body">
+                        <label for="todayDate" class="sim-chip-label">Simulation Date</label>
+                        <input type="date" id="todayDate" class="sim-chip-input">
+                    </div>
+                </div>
+
                 <!-- 5. + Add Machine -->
                 <button id="btn-open-add" class="btn btn-primary" type="button">
                     <svg class="icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                    + Add Machine
+                    <span>Add Machine</span>
                 </button>
             </div>
 
-            <!-- Fleet Machine Grid -->
-            <div id="fleet-grid" class="fleet-grid">
-                <!-- Dynamically populated by JS -->
+            <!-- =====================================================
+                 3 & 4. PRIORITY MACHINES & NORMAL FLEET (Mission Control Workspace)
+            ===================================================== -->
+            <div id="fleet-grid" class="fleet-mission-control-workspace">
+                <!-- Dynamically populated into 3. Priority Machines and 4. Normal Fleet by DashboardController -->
             </div>
 
-            <!-- Bottom Action Footer Bar for Share & Diagnostics -->
-            <div class="fleet-footer-bar glass-panel">
+            <!-- Mission Control Footer -->
+            <div class="fleet-footer-bar">
                 <div class="footer-info">
                     <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-                    <span>Laser Lifetime & Hour Recalibration Engine • Industrial Fleet Reports</span>
+                    <span>Laser Lifetime & Hour Recalibration Engine • Industrial Fleet Mission Control</span>
                 </div>
                 <div class="footer-actions">
                     <button id="btn-share-fleet" class="btn btn-secondary" title="Share Fleet Status & Export">

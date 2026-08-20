@@ -140,40 +140,65 @@ export const DashboardController = {
                 const card = container.querySelector(`.machine-card[data-id="${m.id}"]`);
                 if (card) {
                     const crit = metrics.mostCriticalLaser;
-                    const formatHrs = Math.abs(crit.remainingTotal);
+                    const formatHrs = Math.abs(crit.remainingTotal).toLocaleString();
                     const remainText = crit.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
 
                     let replaceDaysText = '—';
+                    let isOverdue = false;
                     if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
                         const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
-                        replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d overdue` : `${daysVal}d left`;
+                        if (crit.remainingTotal < 0) {
+                            replaceDaysText = `${daysVal}d overdue`;
+                            isOverdue = true;
+                        } else {
+                            replaceDaysText = `${daysVal}d left`;
+                        }
                     }
 
-                    const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
+                    let requiredAction = 'MONITOR';
+                    let actionTone = 'action-safe';
+                    if (crit.status === 'ALARM' || crit.isContingencyActive || crit.remainingTotal <= 0) {
+                        requiredAction = 'REPLACE LASER HEAD';
+                        actionTone = 'action-alarm';
+                    } else if (crit.status === 'BASELINE_REQUIRED') {
+                        requiredAction = 'CALIBRATION REQUIRED';
+                        actionTone = 'action-baseline';
+                    } else if (crit.status === 'WARNING') {
+                        requiredAction = 'PLAN REPLACEMENT';
+                        actionTone = 'action-warning';
+                    }
+
+                    const rawCurrentHr = crit.currentHour !== null && crit.currentHour !== '—' ? Number(crit.currentHour) : null;
+                    const currentHrsVal = rawCurrentHr !== null && !isNaN(rawCurrentHr) ? rawCurrentHr.toLocaleString() : (crit.currentHour || '—');
                     const lifeRemainingDisplay = crit.isContingencyActive ? '0%' : crit.formattedLifeRemaining;
                     const lifeRemainingPct = crit.isContingencyActive ? 0 : crit.lifeRemainingPercent;
 
-                    const currentVal = card.querySelector('.mc-primary-hour');
-                    const remainVal = card.querySelector('.mc-stat-val-remain');
-                    const daysValEl = card.querySelector('.mc-stat-val-days');
+                    const actionPill = card.querySelector('.mc-action-pill');
+                    const marginVal = card.querySelector('.mc-hero-margin-value');
+                    const marginSub = card.querySelector('.mc-margin-subtext');
+                    const currentVal = card.querySelector('.mc-runtime-value');
                     const healthFill = card.querySelector('.mc-progress-fill');
                     const healthText = card.querySelector('.mc-progress-label');
 
-                    if (currentVal) currentVal.textContent = currentHrsText;
-                    if (remainVal) {
-                        remainVal.textContent = remainText;
-                        remainVal.className = `mc-split-val mc-stat-val-remain ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}`;
+                    if (actionPill) {
+                        actionPill.textContent = requiredAction;
+                        actionPill.className = `mc-action-pill ${actionTone}`;
                     }
-                    if (daysValEl) {
-                        daysValEl.textContent = replaceDaysText;
-                        daysValEl.style.color = crit.remainingTotal < 0 ? 'var(--red)' : '';
+                    if (marginVal) {
+                        marginVal.textContent = remainText;
+                        marginVal.className = `mc-hero-margin-value ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}`;
                     }
+                    if (marginSub) {
+                        marginSub.textContent = replaceDaysText;
+                        marginSub.className = `mc-margin-subtext ${isOverdue ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : '')}`;
+                    }
+                    if (currentVal) currentVal.textContent = `${currentHrsVal} HRS`;
                     if (healthFill) {
                         healthFill.style.width = `${lifeRemainingPct}%`;
-                        let dotColor = 'var(--green)';
-                        if (metrics.status === 'WARNING') dotColor = 'var(--yellow)';
-                        if (metrics.status === 'ALARM') dotColor = 'var(--red)';
-                        if (metrics.status === 'BASELINE_REQUIRED') dotColor = '#3b82f6';
+                        let dotColor = 'var(--color-safe)';
+                        if (metrics.status === 'WARNING') dotColor = 'var(--color-warning)';
+                        if (metrics.status === 'ALARM') dotColor = 'var(--color-alarm)';
+                        if (metrics.status === 'BASELINE_REQUIRED') dotColor = 'var(--color-primary)';
                         healthFill.style.background = dotColor;
                     }
                     if (healthText) healthText.textContent = lifeRemainingDisplay;
@@ -185,178 +210,205 @@ export const DashboardController = {
         container.innerHTML = '';
 
         if (filtered.length === 0) {
-            container.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 48px; color: var(--muted); font-size: 15px;" class="glass-panel">No wafer driller machines match your search or filter criteria.</div>`;
+            container.innerHTML = `<div class="fleet-empty-state">No semiconductor laser machines match current filter criteria.</div>`;
             return;
         }
 
-        const groups = [
-            {
-                status: 'ALARM',
-                title: 'ALARM',
-                desc: 'Immediate Attention',
-                color: 'var(--red)',
-                bg: 'rgba(239, 68, 68, 0.12)',
-                border: 'rgba(239, 68, 68, 0.3)',
-                items: filtered.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'ALARM')
-            },
-            {
-                status: 'BASELINE_REQUIRED',
-                title: 'BASELINE REQUIRED',
-                desc: 'Initialization Required',
-                color: '#3b82f6',
-                bg: 'rgba(59, 130, 246, 0.12)',
-                border: 'rgba(59, 130, 246, 0.3)',
-                items: filtered.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'BASELINE_REQUIRED')
-            },
-            {
-                status: 'WARNING',
-                title: 'WARNING',
-                desc: 'Planning Required',
-                color: 'var(--yellow)',
-                bg: 'rgba(245, 158, 11, 0.12)',
-                border: 'rgba(245, 158, 11, 0.3)',
-                items: filtered.filter(m => LaserEngine.calculateMachineMetrics(m, evalTime).status === 'WARNING')
-            },
-            {
-                status: 'SAFE',
-                title: 'HEALTHY',
-                desc: 'Normal Operation',
-                color: 'var(--green)',
-                bg: 'rgba(34, 197, 94, 0.12)',
-                border: 'rgba(34, 197, 94, 0.3)',
-                items: filtered.filter(m => {
-                    const st = LaserEngine.calculateMachineMetrics(m, evalTime).status;
-                    return st === 'SAFE' || (st !== 'ALARM' && st !== 'BASELINE_REQUIRED' && st !== 'WARNING');
-                })
+        // Separate into ZONE D (ACTIVE INCIDENTS) and ZONE E (MONITORED FLEET)
+        const activeIncidents = filtered.filter(m => {
+            const st = LaserEngine.calculateMachineMetrics(m, evalTime).status;
+            return st === 'ALARM';
+        });
+
+        const monitoredFleet = filtered.filter(m => {
+            const st = LaserEngine.calculateMachineMetrics(m, evalTime).status;
+            return st !== 'ALARM';
+        });
+
+        // Helper to construct a machine card matching exact 6-level triage hierarchy
+        const buildCard = (machine, isIncident = false) => {
+            const metrics = LaserEngine.calculateMachineMetrics(machine, evalTime);
+            let badgeClass = '', dotColor = '', statusLabel = '';
+
+            if (metrics.status === 'SAFE') {
+                badgeClass = 'color-safe'; dotColor = 'var(--color-safe)'; statusLabel = 'HEALTHY';
+            } else if (metrics.status === 'WARNING') {
+                badgeClass = 'color-warning'; dotColor = 'var(--color-warning)'; statusLabel = 'WARNING';
+            } else if (metrics.status === 'BASELINE_REQUIRED') {
+                badgeClass = 'color-baseline'; dotColor = 'var(--color-primary)'; statusLabel = 'BASELINE';
+            } else {
+                badgeClass = 'color-alarm'; dotColor = 'var(--color-alarm)'; statusLabel = 'ALARM';
             }
-        ];
 
-        groups.forEach(group => {
-            if (group.items.length === 0) return;
+            const crit = metrics.mostCriticalLaser;
+            const formatHrs = Math.abs(crit.remainingTotal).toLocaleString();
+            const remainText = crit.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
 
-            const sectionEl = document.createElement('div');
-            sectionEl.className = `fleet-status-section fleet-section-${group.status.toLowerCase()}`;
-            sectionEl.innerHTML = `
-                <div class="fleet-section-header" style="display: flex; align-items: center; justify-content: space-between; padding-bottom: 8px; margin-bottom: 14px; border-bottom: 1px solid var(--glass-border);">
-                    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                        <span style="font-size: 13px; font-weight: 800; letter-spacing: 0.8px; color: ${group.color}; text-transform: uppercase;">${group.title}</span>
-                        <span style="font-size: 10px; font-weight: 800; padding: 2px 8px; border-radius: 12px; background: ${group.bg}; color: ${group.color}; border: 1px solid ${group.border}; text-transform: uppercase;">${group.items.length} ${group.items.length === 1 ? 'MACHINE' : 'MACHINES'}</span>
-                        <span style="font-size: 12px; color: var(--muted); font-weight: 500;">— ${group.desc}</span>
+            let replaceDaysText = '—';
+            let isOverdue = false;
+            if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
+                const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
+                if (crit.remainingTotal < 0) {
+                    replaceDaysText = `${daysVal}d overdue`;
+                    isOverdue = true;
+                } else {
+                    replaceDaysText = `${daysVal}d remaining`;
+                }
+            }
+
+            // 2. REQUIRED ACTION DETERMINATION
+            let requiredAction = 'MONITOR';
+            let actionTone = 'action-safe';
+            if (crit.status === 'ALARM' || crit.isContingencyActive || crit.remainingTotal <= 0) {
+                requiredAction = 'REPLACE LASER HEAD';
+                actionTone = 'action-alarm';
+            } else if (crit.status === 'BASELINE_REQUIRED') {
+                requiredAction = 'CALIBRATION REQUIRED';
+                actionTone = 'action-baseline';
+            } else if (crit.status === 'WARNING') {
+                requiredAction = 'PLAN REPLACEMENT';
+                actionTone = 'action-warning';
+            }
+
+            const rawCurrentHr = crit.currentHour !== null && crit.currentHour !== '—' ? Number(crit.currentHour) : null;
+            const currentHrsVal = rawCurrentHr !== null && !isNaN(rawCurrentHr) ? rawCurrentHr.toLocaleString() : (crit.currentHour || '—');
+            const lifeRemainingDisplay = crit.isContingencyActive ? '0%' : crit.formattedLifeRemaining;
+            const lifeRemainingPct = crit.isContingencyActive ? 0 : crit.lifeRemainingPercent;
+
+            const card = document.createElement('div');
+            card.className = `machine-card ${isIncident ? 'incident-card' : 'monitored-card'}`;
+            card.setAttribute('data-id', machine.id);
+            card.onclick = (e) => {
+                if (typeof onSelectMachine === 'function') {
+                    onSelectMachine(machine.id, e.currentTarget);
+                }
+            };
+
+            card.innerHTML = `
+                <!-- 1. MACHINE IDENTITY & STATUS -->
+                <div class="mc-identity-header">
+                    <div class="mc-id-wrap">
+                        <span class="mc-machine-no">${machine.machineNo}</span>
+                        <span class="mc-machine-meta">${machine.model || 'BMD302W'} • ${machine.department || 'Production'}</span>
+                    </div>
+                    <div class="mc-status-pill ${badgeClass}">
+                        <span class="mc-status-dot" style="background:${dotColor};"></span>
+                        <span>${statusLabel}</span>
                     </div>
                 </div>
-                <div class="fleet-section-grid"></div>
-            `;
 
-            const sectionGrid = sectionEl.querySelector('.fleet-section-grid');
+                <!-- 2. REQUIRED ACTION -->
+                <div class="mc-action-row">
+                    <span class="mc-action-label">REQUIRED ACTION</span>
+                    <span class="mc-action-pill ${actionTone}">${requiredAction}</span>
+                </div>
 
-            group.items.forEach(machine => {
-                const metrics = LaserEngine.calculateMachineMetrics(machine, evalTime);
-                let badgeClass = '', dotColor = '', statusLabel = '';
-
-                if (metrics.status === 'SAFE') {
-                    badgeClass = 'color-safe'; dotColor = 'var(--green)'; statusLabel = 'HEALTHY';
-                } else if (metrics.status === 'WARNING') {
-                    badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; statusLabel = 'WARNING';
-                } else if (metrics.status === 'BASELINE_REQUIRED') {
-                    badgeClass = 'color-baseline'; dotColor = '#3b82f6'; statusLabel = 'BASELINE';
-                } else {
-                    badgeClass = 'color-alarm'; dotColor = 'var(--red)'; statusLabel = 'ALARM';
-                }
-
-                const card = document.createElement('div');
-                card.className = 'machine-card glass-panel' + (metrics.status === 'ALARM' ? ' alarm-breathing' : '');
-                card.setAttribute('data-id', machine.id);
-                card.onclick = (e) => {
-                    if (typeof onSelectMachine === 'function') {
-                        onSelectMachine(machine.id, e.currentTarget);
-                    }
-                };
-
-                const crit = metrics.mostCriticalLaser;
-                const formatHrs = Math.abs(crit.remainingTotal);
-                const remainText = crit.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
-
-                let replaceDaysText = '—';
-                if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
-                    const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
-                    replaceDaysText = crit.remainingTotal < 0 ? `${daysVal}d overdue` : `${daysVal}d left`;
-                }
-
-                const currentHrsText = crit.currentHour !== null && crit.currentHour !== '—' ? `${crit.currentHour} hrs` : '—';
-                const lifeRemainingDisplay = crit.isContingencyActive ? '0%' : crit.formattedLifeRemaining;
-                const lifeRemainingPct = crit.isContingencyActive ? 0 : crit.lifeRemainingPercent;
-
-                card.innerHTML = `
-                    <div class="mc-header">
-                        <div class="mc-title">${machine.machineName || machine.machineNo}</div>
-                        <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40;">
-                            <div class="mc-led" style="background:${dotColor}; box-shadow: 0 0 8px ${dotColor}"></div>
-                            ${statusLabel}
-                        </div>
+                <!-- 3. REMAINING MARGIN (Primary Numerical Hero Metric) -->
+                <div class="mc-margin-hero-box">
+                    <div class="mc-margin-header">
+                        <span class="mc-margin-title">REMAINING MARGIN</span>
+                        <span class="mc-margin-subtext ${isOverdue ? 'color-alarm font-bold' : (crit.status === 'WARNING' ? 'color-warning' : '')}">${replaceDaysText}</span>
                     </div>
-
-                    <div class="mc-primary-hour-box">
-                        <div class="mc-primary-hour">${currentHrsText}</div>
+                    <div class="mc-margin-display">
+                        <span class="mc-hero-margin-value ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}">${remainText}</span>
                     </div>
+                </div>
 
-                    <div class="mc-metrics-split">
-                        <div class="mc-split-item">
-                            <span class="mc-split-label">Remaining</span>
-                            <span class="mc-split-val mc-stat-val-remain ${crit.status === 'ALARM' ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : 'color-safe')}">${remainText}</span>
-                        </div>
-                        <div class="mc-split-item">
-                            <span class="mc-split-label">Replace</span>
-                            <span class="mc-split-val mc-stat-val-days" style="${crit.remainingTotal < 0 ? 'color:var(--red); font-weight:800;' : ''}">${replaceDaysText}</span>
-                        </div>
-                    </div>
+                <!-- 4. SUPPORTING RUNTIME -->
+                <div class="mc-supporting-runtime">
+                    <span class="mc-runtime-label">OPERATING RUNTIME (${crit.laserName || 'Critical Diode'})</span>
+                    <span class="mc-runtime-value">${currentHrsVal} HRS</span>
+                </div>
 
-                    <div class="mc-progress-section">
-                        <div class="mc-progress-track">
-                            <div class="mc-progress-fill" style="width: ${lifeRemainingPct}%; background: ${dotColor};"></div>
-                        </div>
+                <!-- 5. PROGRESS INDICATOR (Life Capacity %) -->
+                <div class="mc-progress-box">
+                    <div class="mc-progress-header">
+                        <span class="mc-progress-title">LIFE CAPACITY</span>
                         <span class="mc-progress-label">${lifeRemainingDisplay}</span>
                     </div>
-
-                    <div class="mc-card-footer">
-                        <div class="mc-action-buttons">
-                            <button class="btn-mc-action btn-mc-edit" type="button" title="Edit Machine Settings">
-                                <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                <span>Edit</span>
-                            </button>
-                            <button class="btn-mc-action btn-mc-delete" type="button" title="Delete Machine">
-                                <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                <span>Delete</span>
-                            </button>
-                        </div>
+                    <div class="mc-progress-track">
+                        <div class="mc-progress-fill" style="width: ${lifeRemainingPct}%; background: ${dotColor};"></div>
                     </div>
-                `;
+                </div>
 
-                const btnEdit = card.querySelector('.btn-mc-edit');
-                const btnDelete = card.querySelector('.btn-mc-delete');
+                <!-- 6. QUICK ACTIONS -->
+                <div class="mc-card-footer">
+                    <div class="mc-inspect-link">
+                        <span>Inspect Telemetry</span>
+                        <svg class="icon mc-arrow-icon" viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                    </div>
+                    <div class="mc-quick-actions">
+                        <button class="btn-mc-action btn-mc-edit" type="button" title="Edit Machine Settings">
+                            <svg class="icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+                        <button class="btn-mc-action btn-mc-delete" type="button" title="Delete Machine">
+                            <svg class="icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </div>
+                </div>
+            `;
 
-                if (btnEdit) {
-                    btnEdit.onclick = (e) => {
-                        e.stopPropagation();
-                        if (typeof onEditMachine === 'function') {
-                            onEditMachine(machine.id);
-                        }
-                    };
-                }
+            const btnEdit = card.querySelector('.btn-mc-edit');
+            const btnDelete = card.querySelector('.btn-mc-delete');
 
-                if (btnDelete) {
-                    btnDelete.onclick = (e) => {
-                        e.stopPropagation();
-                        if (typeof onDeleteMachine === 'function') {
-                            onDeleteMachine(machine.id);
-                        }
-                    };
-                }
+            if (btnEdit) {
+                btnEdit.onclick = (e) => {
+                    e.stopPropagation();
+                    if (typeof onEditMachine === 'function') {
+                        onEditMachine(machine.id);
+                    }
+                };
+            }
 
-                sectionGrid.appendChild(card);
-            });
+            if (btnDelete) {
+                btnDelete.onclick = (e) => {
+                    e.stopPropagation();
+                    if (typeof onDeleteMachine === 'function') {
+                        onDeleteMachine(machine.id);
+                    }
+                };
+            }
 
-            container.appendChild(sectionEl);
-        });
+            return card;
+        };
+
+        // ZONE D: ACTIVE INCIDENTS (Maximum visual priority)
+        if (activeIncidents.length > 0) {
+            const incidentSection = document.createElement('div');
+            incidentSection.className = 'zone-active-incidents';
+            incidentSection.innerHTML = `
+                <div class="mission-section-header incident-header">
+                    <div class="mission-section-title-wrap">
+                        <span class="mission-section-title color-alarm">ACTIVE INCIDENTS</span>
+                        <span class="mission-section-badge badge-alarm">${activeIncidents.length} ${activeIncidents.length === 1 ? 'UNIT REQUIRING ACTION' : 'UNITS REQUIRING ACTION'}</span>
+                        <span class="mission-section-desc">— Rated life exceeded or contingency active. Immediate laser head intervention required.</span>
+                    </div>
+                </div>
+                <div class="incident-grid"></div>
+            `;
+            const incidentGrid = incidentSection.querySelector('.incident-grid');
+            activeIncidents.forEach(m => incidentGrid.appendChild(buildCard(m, true)));
+            container.appendChild(incidentSection);
+        }
+
+        // ZONE E: MONITORED FLEET (Warning & Healthy - Compact Engineering Grid)
+        if (monitoredFleet.length > 0) {
+            const monitoredSection = document.createElement('div');
+            monitoredSection.className = 'zone-monitored-fleet';
+            monitoredSection.innerHTML = `
+                <div class="mission-section-header monitored-header">
+                    <div class="mission-section-title-wrap">
+                        <span class="mission-section-title">MONITORED FLEET</span>
+                        <span class="mission-section-badge badge-normal">${monitoredFleet.length} ${monitoredFleet.length === 1 ? 'MACHINE' : 'MACHINES'}</span>
+                        <span class="mission-section-desc">— Standard operational units across semiconductor production lines.</span>
+                    </div>
+                </div>
+                <div class="monitored-grid"></div>
+            `;
+            const monitoredGrid = monitoredSection.querySelector('.monitored-grid');
+            monitoredFleet.forEach(m => monitoredGrid.appendChild(buildCard(m, false)));
+            container.appendChild(monitoredSection);
+        }
     }
 };
 
