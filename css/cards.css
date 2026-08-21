@@ -407,31 +407,22 @@
     font-weight: var(--font-weight-medium);
 }
 
-/* ZONE D: ACTIVE INCIDENTS GRID (Dominates Viewport) */
-.zone-active-incidents {
+/* ZONE D & E: UNIFIED FLEET GRID */
+.fleet-unified-grid {
     display: flex;
     flex-direction: column;
 }
 
-.incident-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: var(--space-3);
-}
-
-/* ZONE E: MONITORED FLEET GRID (Compact Engineering View) */
-.zone-monitored-fleet {
-    display: flex;
-    flex-direction: column;
-}
-
+.fleet-cards-grid,
+.incident-grid,
 .monitored-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: var(--space-3);
 }
 
 @media (max-width: 768px) {
+    .fleet-cards-grid,
     .incident-grid,
     .monitored-grid {
         grid-template-columns: 1fr;

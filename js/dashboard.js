@@ -88,37 +88,42 @@ export const DashboardController = {
             return matchSearch && matchStatus && matchDept && matchModel;
         });
 
-        // Sort machines based on Primary Status Order (ALARM > WARNING > SAFE) then user selected sortMode
+        // Execute user selected sortMode directly on the filtered dataset
         filtered.sort((a, b) => {
             const metricsA = LaserEngine.calculateMachineMetrics(a, evalTime);
             const metricsB = LaserEngine.calculateMachineMetrics(b, evalTime);
 
-            const statusPriority = { 'ALARM': 3, 'WARNING': 2, 'SAFE': 1 };
-            const priA = statusPriority[metricsA.status] ?? 0;
-            const priB = statusPriority[metricsB.status] ?? 0;
+            const statusPriority = { 'ALARM': 3, 'WARNING': 2, 'BASELINE_REQUIRED': 1.5, 'SAFE': 1 };
 
-            if (priA !== priB) {
-                return priB - priA; // Primary order: ALARM > WARNING > SAFE
-            }
-
-            // Secondary sort within same status group according to user sort choice
             switch (sortMode) {
                 case 'no-asc':
                     return (a.machineNo || '').localeCompare(b.machineNo || '', undefined, { numeric: true, sensitivity: 'base' });
                 case 'no-desc':
                     return (b.machineNo || '').localeCompare(a.machineNo || '', undefined, { numeric: true, sensitivity: 'base' });
                 case 'hour-desc':
-                    return metricsB.currentHour - metricsA.currentHour;
+                    return (metricsB.currentHour || 0) - (metricsA.currentHour || 0);
                 case 'hour-asc':
-                    return metricsA.currentHour - metricsB.currentHour;
+                    return (metricsA.currentHour || 0) - (metricsB.currentHour || 0);
                 case 'remain-asc':
-                    return metricsA.remainingTotal - metricsB.remainingTotal;
+                    return (metricsA.remainingTotal || 0) - (metricsB.remainingTotal || 0);
                 case 'remain-desc':
-                    return metricsB.remainingTotal - metricsA.remainingTotal;
+                    return (metricsB.remainingTotal || 0) - (metricsA.remainingTotal || 0);
                 case 'health-asc':
-                    return metricsA.lifeRemainingPercent - metricsB.lifeRemainingPercent;
+                    return (metricsA.lifeRemainingPercent || 0) - (metricsB.lifeRemainingPercent || 0);
                 case 'health-desc':
-                    return metricsB.lifeRemainingPercent - metricsA.lifeRemainingPercent;
+                    return (metricsB.lifeRemainingPercent || 0) - (metricsA.lifeRemainingPercent || 0);
+                case 'status-urgent': {
+                    const priA = statusPriority[metricsA.status] ?? 0;
+                    const priB = statusPriority[metricsB.status] ?? 0;
+                    if (priA !== priB) return priB - priA;
+                    return (metricsA.remainingTotal || 0) - (metricsB.remainingTotal || 0);
+                }
+                case 'status-safe': {
+                    const priA = statusPriority[metricsA.status] ?? 0;
+                    const priB = statusPriority[metricsB.status] ?? 0;
+                    if (priA !== priB) return priA - priB;
+                    return (metricsB.remainingTotal || 0) - (metricsA.remainingTotal || 0);
+                }
                 case 'recal-newest': {
                     const tA = new Date(metricsA.lastRecalibrationDate || 0).getTime() || 0;
                     const tB = new Date(metricsB.lastRecalibrationDate || 0).getTime() || 0;
@@ -213,17 +218,6 @@ export const DashboardController = {
             container.innerHTML = `<div class="fleet-empty-state">No semiconductor laser machines match current filter criteria.</div>`;
             return;
         }
-
-        // Separate into ZONE D (ACTIVE INCIDENTS) and ZONE E (MONITORED FLEET)
-        const activeIncidents = filtered.filter(m => {
-            const st = LaserEngine.calculateMachineMetrics(m, evalTime).status;
-            return st === 'ALARM';
-        });
-
-        const monitoredFleet = filtered.filter(m => {
-            const st = LaserEngine.calculateMachineMetrics(m, evalTime).status;
-            return st !== 'ALARM';
-        });
 
         // Helper to construct a machine card matching exact 6-level triage hierarchy
         const buildCard = (machine, isIncident = false) => {
@@ -372,43 +366,25 @@ export const DashboardController = {
             return card;
         };
 
-        // ZONE D: ACTIVE INCIDENTS (Maximum visual priority)
-        if (activeIncidents.length > 0) {
-            const incidentSection = document.createElement('div');
-            incidentSection.className = 'zone-active-incidents';
-            incidentSection.innerHTML = `
-                <div class="mission-section-header incident-header">
-                    <div class="mission-section-title-wrap">
-                        <span class="mission-section-title color-alarm">ACTIVE INCIDENTS</span>
-                        <span class="mission-section-badge badge-alarm">${activeIncidents.length} ${activeIncidents.length === 1 ? 'UNIT REQUIRING ACTION' : 'UNITS REQUIRING ACTION'}</span>
-                        <span class="mission-section-desc">— Rated life exceeded or contingency active. Immediate laser head intervention required.</span>
-                    </div>
+        // Render machine cards directly in strict user-selected sort order
+        const gridSection = document.createElement('div');
+        gridSection.className = 'fleet-unified-grid';
+        gridSection.innerHTML = `
+            <div class="mission-section-header fleet-header">
+                <div class="mission-section-title-wrap">
+                    <span class="mission-section-title">FLEET UNITS</span>
+                    <span class="mission-section-badge badge-normal">${filtered.length} ${filtered.length === 1 ? 'UNIT' : 'UNITS'}</span>
+                    <span class="mission-section-desc">— Monitored semiconductor laser fleet sorted by selected criteria.</span>
                 </div>
-                <div class="incident-grid"></div>
-            `;
-            const incidentGrid = incidentSection.querySelector('.incident-grid');
-            activeIncidents.forEach(m => incidentGrid.appendChild(buildCard(m, true)));
-            container.appendChild(incidentSection);
-        }
-
-        // ZONE E: MONITORED FLEET (Warning & Healthy - Compact Engineering Grid)
-        if (monitoredFleet.length > 0) {
-            const monitoredSection = document.createElement('div');
-            monitoredSection.className = 'zone-monitored-fleet';
-            monitoredSection.innerHTML = `
-                <div class="mission-section-header monitored-header">
-                    <div class="mission-section-title-wrap">
-                        <span class="mission-section-title">MONITORED FLEET</span>
-                        <span class="mission-section-badge badge-normal">${monitoredFleet.length} ${monitoredFleet.length === 1 ? 'MACHINE' : 'MACHINES'}</span>
-                        <span class="mission-section-desc">— Standard operational units across semiconductor production lines.</span>
-                    </div>
-                </div>
-                <div class="monitored-grid"></div>
-            `;
-            const monitoredGrid = monitoredSection.querySelector('.monitored-grid');
-            monitoredFleet.forEach(m => monitoredGrid.appendChild(buildCard(m, false)));
-            container.appendChild(monitoredSection);
-        }
+            </div>
+            <div class="fleet-cards-grid"></div>
+        `;
+        const cardsGrid = gridSection.querySelector('.fleet-cards-grid');
+        filtered.forEach(m => {
+            const isAlarm = LaserEngine.calculateMachineMetrics(m, evalTime).status === 'ALARM';
+            cardsGrid.appendChild(buildCard(m, isAlarm));
+        });
+        container.appendChild(gridSection);
     }
 };
 
