@@ -1143,3 +1143,12 @@ body::before {
     transform: translateX(2px);
 }
 
+.footer-info .icon {
+    width: 16px;
+    height: 16px;
+    stroke: var(--color-primary);
+    fill: none;
+    stroke-width: 2;
+    flex-shrink: 0;
+}
+
