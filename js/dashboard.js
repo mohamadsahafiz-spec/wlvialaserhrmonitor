@@ -402,22 +402,9 @@ export const DashboardController = {
                         healthFill.style.background = dotColor;
                     }
                     if (healthText) healthText.textContent = lifeRemainingDisplay;
+                    if (drawerRuntime) drawerRuntime.textContent = `${currentHrsVal} hrs`;
                 }
             });
-
-            // Update open detail panel telemetry if currently displayed
-            const detailPanel = container.querySelector('.fleet-detail-panel');
-            if (detailPanel && AppState.expandedCardId) {
-                const expMach = filtered.find(m => m.id === AppState.expandedCardId);
-                if (expMach) {
-                    const expMetrics = LaserEngine.calculateMachineMetrics(expMach, evalTime);
-                    const expCrit = expMetrics.mostCriticalLaser;
-                    const expRawHr = expCrit.currentHour !== null && expCrit.currentHour !== '—' ? Number(expCrit.currentHour) : null;
-                    const expHrsVal = expRawHr !== null && !isNaN(expRawHr) ? expRawHr.toLocaleString() : (expCrit.currentHour || '—');
-                    const runtimeEl = detailPanel.querySelector('.mc-drawer-val-runtime');
-                    if (runtimeEl) runtimeEl.textContent = `${expHrsVal} hrs`;
-                }
-            }
             return;
         }
 
@@ -537,10 +524,8 @@ export const DashboardController = {
                 `;
             }
 
-            const isCardExpanded = AppState.expandedCardId === machine.id;
-
             const card = document.createElement('div');
-            card.className = `machine-card ${isIncident ? 'incident-card' : 'monitored-card'} ${isCardExpanded ? 'is-card-selected' : ''}`;
+            card.className = `machine-card ${isIncident ? 'incident-card' : 'monitored-card'}`;
             card.setAttribute('data-id', machine.id);
             card.onclick = (e) => {
                 if (typeof onSelectMachine === 'function') {
@@ -589,12 +574,34 @@ export const DashboardController = {
                     </div>
                 </div>
 
-                <!-- 5. CARD FOOTER: Single Primary Action, Disclosure Toggle & Quiet Secondary Actions -->
+                <!-- 5. PROGRESSIVE DISCLOSURE DRAWER (Secondary Telemetry - Collapsed by Default) -->
+                <div class="mc-disclosure-drawer">
+                    <div class="mc-drawer-grid">
+                        <div class="mc-drawer-item">
+                            <span class="mc-drawer-label">Runtime (${crit.laserName || 'Head 1'})</span>
+                            <span class="mc-drawer-val mc-drawer-val-runtime">${currentHrsVal} hrs</span>
+                        </div>
+                        <div class="mc-drawer-item">
+                            <span class="mc-drawer-label">Last Calibrated</span>
+                            <span class="mc-drawer-val">${lastCalText}</span>
+                        </div>
+                        <div class="mc-drawer-item">
+                            <span class="mc-drawer-label">Burn Trend / PM</span>
+                            <span class="mc-drawer-val ${trendClass}">${trendText}</span>
+                        </div>
+                        <div class="mc-drawer-item">
+                            <span class="mc-drawer-label">Serial Number</span>
+                            <span class="mc-drawer-val">${machine.serialNo || machine.serialNumber || ('SN-' + machine.id)}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6. CARD FOOTER: Single Primary Action, Disclosure Toggle & Quiet Secondary Actions -->
                 <div class="mc-card-footer">
                     ${primaryActionBtnHtml}
                     <div class="mc-footer-right">
-                        <button class="mc-btn-disclosure ${isCardExpanded ? 'is-active' : ''}" type="button" title="Toggle Engineering Telemetry Details">
-                            <span class="mc-disclosure-text">${isCardExpanded ? 'Collapse' : 'Details'}</span>
+                        <button class="mc-btn-disclosure" type="button" title="Toggle Engineering Telemetry Details">
+                            <span class="mc-disclosure-text">Details</span>
                             <svg class="icon mc-disclosure-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
                         <div class="mc-secondary-actions">
@@ -620,17 +627,18 @@ export const DashboardController = {
                 };
             }
 
-            // Dedicated Detail Toggle handler: Clicking Details toggles the full-width detail row
+            // Progressive Disclosure Toggle handler
             const btnDisclosure = card.querySelector('.mc-btn-disclosure');
-            if (btnDisclosure) {
+            const drawer = card.querySelector('.mc-disclosure-drawer');
+            if (btnDisclosure && drawer) {
                 btnDisclosure.onclick = (e) => {
                     e.stopPropagation();
-                    if (AppState.expandedCardId === machine.id) {
-                        AppState.expandedCardId = null;
-                    } else {
-                        AppState.expandedCardId = machine.id;
+                    const isExpanded = drawer.classList.toggle('is-expanded');
+                    btnDisclosure.classList.toggle('is-active', isExpanded);
+                    const txt = btnDisclosure.querySelector('.mc-disclosure-text');
+                    if (txt) {
+                        txt.textContent = isExpanded ? 'Collapse' : 'Details';
                     }
-                    DashboardController.renderFleetView(container, machines, filters, evalTime, onSelectMachine, onEditMachine, onDeleteMachine);
                 };
             }
 
@@ -659,435 +667,6 @@ export const DashboardController = {
             return card;
         };
 
-        // Helper to build the dedicated full-width Engineering Snapshot panel
-        const buildDetailPanel = (machine) => {
-            const metrics = LaserEngine.calculateMachineMetrics(machine, evalTime);
-            const crit = metrics.mostCriticalLaser;
-            const rawCurrentHr = crit.currentHour !== null && crit.currentHour !== '—' ? Number(crit.currentHour) : null;
-            const currentHrsVal = rawCurrentHr !== null && !isNaN(rawCurrentHr) ? rawCurrentHr.toLocaleString() : (crit.currentHour || '—');
-
-            // 1. Machine Identity values
-            const machineNo = machine.machineNo || 'WD-101';
-            const model = machine.model || 'BMD302W';
-            const department = machine.department || 'Wafer Prep';
-            const serialNo = machine.serialNo || machine.serialNumber || ('SN-' + machine.id);
-            let operatingMode = 'DRILLING (ONLINE)';
-            let operatingModeClass = 'mode-online';
-            if (crit.isContingencyActive) {
-                operatingMode = 'CONTINGENCY PM (ACTIVE)';
-                operatingModeClass = 'mode-contingency';
-            } else if (metrics.status === 'ALARM') {
-                operatingMode = 'LIMIT EXCEEDED (HOLD)';
-                operatingModeClass = 'mode-alarm';
-            } else if (metrics.status === 'WARNING') {
-                operatingMode = 'ACCELERATED DRILL (WARN)';
-                operatingModeClass = 'mode-warning';
-            } else if (metrics.status === 'BASELINE_REQUIRED') {
-                operatingMode = 'STANDBY (BASELINE REQ)';
-                operatingModeClass = 'mode-standby';
-            }
-
-            // 2. Runtime Analytics values
-            const lasers = Array.isArray(machine.lasers) && machine.lasers.length > 0 ? machine.lasers : [{
-                id: machine.id + '-L1',
-                name: 'Laser Head 1',
-                serialNo: (machine.serialNo || 'SN') + '-L1',
-                ratedLife: machine.ratedLife || 25000,
-                warningLife: machine.warningLife || 20000,
-                baseLaserHour: machine.baseLaserHour || 0,
-                baseTimestamp: machine.baseTimestamp || evalTime
-            }];
-
-            const laserMetrics = metrics.laserMetricsList || lasers.map(l => LaserEngine.calculateLaserMetrics(l, evalTime));
-            const totalOperatingHours = laserMetrics.reduce((acc, curr) => {
-                const h = curr.currentHour !== null && curr.currentHour !== '—' ? Number(curr.currentHour) : 0;
-                return acc + (isNaN(h) ? 0 : h);
-            }, 0);
-
-            let lastCalText = '—';
-            let calDueDateText = 'Scheduled (90d cycle)';
-            if (crit.lastRecalibrationDate) {
-                const daysSince = Math.floor((new Date(evalTime) - new Date(crit.lastRecalibrationDate)) / (1000 * 60 * 60 * 24));
-                lastCalText = daysSince <= 0 ? 'Today' : `${daysSince}d ago (${new Date(crit.lastRecalibrationDate).toISOString().split('T')[0]})`;
-                const daysUntilDue = Math.max(0, 90 - daysSince);
-                calDueDateText = daysSince > 90 ? `OVERDUE by ${daysSince - 90}d` : `Due in ${daysUntilDue}d`;
-            } else if (crit.initialSettingDate) {
-                const daysSince = Math.floor((new Date(evalTime) - new Date(crit.initialSettingDate)) / (1000 * 60 * 60 * 24));
-                lastCalText = daysSince <= 0 ? 'Today' : `${daysSince}d ago (${new Date(crit.initialSettingDate).toISOString().split('T')[0]})`;
-                const daysUntilDue = Math.max(0, 90 - daysSince);
-                calDueDateText = daysSince > 90 ? `OVERDUE by ${daysSince - 90}d` : `Due in ${daysUntilDue}d`;
-            }
-
-            let burnTrend = 'Nominal (1.00x)';
-            let burnTrendClass = 'color-safe';
-            let pmTrend = 'Cycle 2/4 (On-Track)';
-            let pmTrendClass = 'color-safe';
-            if (crit.isContingencyActive) {
-                burnTrend = 'Contingency Rate (1.25x)';
-                burnTrendClass = 'color-alarm';
-                pmTrend = 'Immediate Service Required';
-                pmTrendClass = 'color-alarm';
-            } else if (crit.status === 'ALARM') {
-                burnTrend = 'Threshold Exceeded';
-                burnTrendClass = 'color-alarm';
-                pmTrend = 'Service Overdue';
-                pmTrendClass = 'color-alarm';
-            } else if (crit.status === 'WARNING') {
-                burnTrend = 'Accelerated (1.15x)';
-                burnTrendClass = 'color-warning';
-                pmTrend = 'Prepare Next PM Cycle';
-                pmTrendClass = 'color-warning';
-            } else if (crit.status === 'BASELINE_REQUIRED') {
-                burnTrend = 'Uncalibrated';
-                burnTrendClass = 'color-baseline';
-                pmTrend = 'Baseline Calibration Pending';
-                pmTrendClass = 'color-baseline';
-            }
-
-            // 3. Laser Head Health (Multi-head / Dual-head comparison table)
-            const headRowsHtml = laserMetrics.map((lMetrics, idx) => {
-                const lStatus = lMetrics.status;
-                const lStatusClass = lStatus === 'SAFE' ? 'color-safe' : (lStatus === 'WARNING' ? 'color-warning' : (lStatus === 'BASELINE_REQUIRED' ? 'color-baseline' : 'color-alarm'));
-                const lRuntime = (lMetrics.currentHour !== null && lMetrics.currentHour !== '—') ? `${Number(lMetrics.currentHour).toLocaleString()} hrs` : '—';
-                const lRemHours = (lMetrics.remainingTotal === null || lMetrics.remainingTotal === undefined)
-                    ? '—'
-                    : (lMetrics.remainingTotal < 0
-                        ? `-${Math.abs(lMetrics.remainingTotal).toLocaleString()} hrs`
-                        : `${Math.abs(lMetrics.remainingTotal).toLocaleString()} hrs`);
-                
-                const pct = lMetrics.capacityPercent !== undefined && lMetrics.capacityPercent !== null ? Math.max(0, Math.min(100, Math.round(lMetrics.capacityPercent))) : 0;
-                
-                // Deterministic simulated head temperature based on seed & runtime
-                const baseTemp = 21.5 + (idx * 1.8) + ((Number(lMetrics.currentHour || 1000) % 500) / 250);
-                const tempFormatted = `${baseTemp.toFixed(1)}°C`;
-                const isCritical = (lMetrics.id && crit.id && lMetrics.id === crit.id) || (lMetrics.name && crit.name && lMetrics.name === crit.name);
-
-                return `
-                    <tr class="es-head-row ${isCritical ? 'is-critical-head' : ''}">
-                        <td class="es-td-head">
-                            <div class="es-head-name-wrap">
-                                <span class="es-head-name">${lMetrics.name || ('Laser Head ' + (idx + 1))}</span>
-                                <span class="es-head-sn">${lMetrics.serialNo || ('SN-' + (idx + 1))}</span>
-                                ${isCritical ? '<span class="es-head-crit-badge">CRITICAL</span>' : ''}
-                            </div>
-                        </td>
-                        <td class="es-td-num">${lRuntime}</td>
-                        <td class="es-td-num ${lStatusClass}">${lRemHours}</td>
-                        <td class="es-td-pct">
-                            <div class="es-pct-bar-wrap">
-                                <div class="es-pct-bar-fill" style="width: ${pct}%; background: ${lStatus === 'SAFE' ? 'var(--color-safe)' : (lStatus === 'WARNING' ? 'var(--color-warning)' : 'var(--color-alarm)')};"></div>
-                                <span class="es-pct-text">${pct}%</span>
-                            </div>
-                        </td>
-                        <td class="es-td-num">${tempFormatted}</td>
-                        <td class="es-td-status">
-                            <span class="es-status-chip ${lStatusClass}">${lStatus}</span>
-                        </td>
-                    </tr>
-                `;
-            }).join('');
-
-            // 4. Environmental Health
-            const hashNum = machine.id.split('').reduce((acc, c) => acc + c.charCodeAt(0), 0);
-            const waterTemp = (20.0 + (hashNum % 25) / 10).toFixed(1);
-            const humidity = (44.0 + (hashNum % 30) / 10).toFixed(1);
-            const ambientTemp = (22.0 + (hashNum % 20) / 10).toFixed(1);
-            const airPressure = (101.2 + (hashNum % 15) / 10).toFixed(1);
-
-            // 5. Maintenance Timeline (Newest first)
-            const timelineEvents = [];
-            if (Array.isArray(machine.maintenanceHistory)) {
-                machine.maintenanceHistory.forEach(m => {
-                    timelineEvents.push({
-                        date: m.date || '2026-01-01',
-                        type: m.action || 'PM Completed',
-                        engineer: m.engineer || 'Service Team',
-                        notes: m.notes || 'Routine check verified.'
-                    });
-                });
-            }
-            lasers.forEach(l => {
-                if (Array.isArray(l.calibrationHistory)) {
-                    l.calibrationHistory.forEach(c => {
-                        timelineEvents.push({
-                            date: c.date ? c.date.split('T')[0] : '2026-01-01',
-                            type: 'Recalibration',
-                            engineer: 'Precision Tech',
-                            notes: `${l.name}: Actual ${c.actualHour || 0} hrs (${c.reason || 'Scheduled check'})`
-                        });
-                    });
-                }
-            });
-
-            // Sort newest first
-            timelineEvents.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-            if (timelineEvents.length === 0) {
-                const safeEvalDate = (evalTime instanceof Date ? evalTime : new Date(evalTime)).toISOString().split('T')[0];
-                timelineEvents.push({
-                    date: safeEvalDate,
-                    type: 'Baseline Commissioning',
-                    engineer: 'Lead Engineer',
-                    notes: 'Initial factory settings and optical baseline verified.'
-                });
-            }
-            const timelineHtml = timelineEvents.slice(0, 3).map(ev => `
-                <div class="es-timeline-item">
-                    <div class="es-timeline-dot"></div>
-                    <div class="es-timeline-content">
-                        <div class="es-timeline-top">
-                            <span class="es-timeline-type">${ev.type}</span>
-                            <span class="es-timeline-date">${ev.date}</span>
-                        </div>
-                        <div class="es-timeline-meta">${ev.engineer} • <span class="es-timeline-notes">${ev.notes}</span></div>
-                    </div>
-                </div>
-            `).join('');
-
-            // 6. Active Engineering Alerts
-            const alerts = [];
-            if (crit.isContingencyActive) {
-                alerts.push({ level: 'ALARM', title: 'Contingency Mode Engaged', desc: 'Operating in degraded drift contingency window. Immediate swap required.' });
-            }
-            if (crit.status === 'ALARM') {
-                alerts.push({ level: 'ALARM', title: 'Rated Lifetime Limit Exceeded', desc: `Exceeded rated operating threshold (${crit.ratedLife.toLocaleString()} hrs).` });
-            } else if (crit.status === 'WARNING') {
-                alerts.push({ level: 'WARNING', title: 'Accelerated Burn Warning', desc: `Passed 80% warning threshold (${crit.warningLife.toLocaleString()} hrs). Schedule replacement optical head.` });
-            }
-            if (crit.status === 'BASELINE_REQUIRED') {
-                alerts.push({ level: 'BASELINE', title: 'Baseline Calibration Required', desc: 'No baseline calibration anchor point set for this machine head.' });
-            }
-            if (calDueDateText.includes('OVERDUE')) {
-                alerts.push({ level: 'WARNING', title: 'Calibration Interval Due', desc: 'Quarterly precision recalibration cycle has exceeded standard 90-day window.' });
-            }
-
-            let alertsHtml = '';
-            if (alerts.length > 0) {
-                alertsHtml = alerts.map(a => `
-                    <div class="es-alert-item es-alert-${a.level.toLowerCase()}">
-                        <span class="es-alert-badge">${a.level}</span>
-                        <div class="es-alert-body">
-                            <div class="es-alert-title">${a.title}</div>
-                            <div class="es-alert-desc">${a.desc}</div>
-                        </div>
-                    </div>
-                `).join('');
-            } else {
-                alertsHtml = `
-                    <div class="es-alert-item es-alert-nominal">
-                        <span class="es-alert-badge">NOMINAL</span>
-                        <div class="es-alert-body">
-                            <div class="es-alert-title">All Subsystems Nominal</div>
-                            <div class="es-alert-desc">All optical channels, environmental sensors, and calibration timers operating within engineering tolerances.</div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            const panel = document.createElement('div');
-            panel.className = 'fleet-detail-panel';
-            panel.setAttribute('data-detail-id', machine.id);
-            panel.innerHTML = `
-                <!-- SECTION 1: MACHINE IDENTITY & HEADER -->
-                <div class="es-header">
-                    <div class="es-header-left">
-                        <span class="es-title-badge">ENGINEERING SNAPSHOT</span>
-                        <span class="es-mach-no">${machineNo}</span>
-                        <span class="es-model-dept">${model} • ${department}</span>
-                        <span class="es-serial-badge">SN: ${serialNo}</span>
-                        <span class="es-mode-badge ${operatingModeClass}">${operatingMode}</span>
-                    </div>
-                    <div class="es-header-right">
-                        <button class="fleet-detail-close-btn" type="button" title="Collapse Snapshot">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- MAIN ENGINEERING SNAPSHOT GRID -->
-                <div class="es-grid">
-                    <!-- SECTION 2: RUNTIME & CALIBRATION ANALYTICS -->
-                    <div class="es-card es-card-analytics">
-                        <div class="es-card-header">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            <span>RUNTIME & CALIBRATION ANALYTICS</span>
-                        </div>
-                        <div class="es-metrics-grid">
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Current Runtime</span>
-                                <span class="es-metric-val mc-drawer-val-runtime">${currentHrsVal} hrs</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Total Operating Hours</span>
-                                <span class="es-metric-val">${totalOperatingHours.toLocaleString()} hrs</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Last Calibration</span>
-                                <span class="es-metric-val">${lastCalText}</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Calibration Due</span>
-                                <span class="es-metric-val ${calDueDateText.includes('OVERDUE') ? 'color-alarm' : ''}">${calDueDateText}</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Burn Trend</span>
-                                <span class="es-metric-val ${burnTrendClass}">${burnTrend}</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">PM Trend</span>
-                                <span class="es-metric-val ${pmTrendClass}">${pmTrend}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- SECTION 4: ENVIRONMENTAL HEALTH -->
-                    <div class="es-card es-card-env">
-                        <div class="es-card-header">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                            <span>ENVIRONMENTAL HEALTH</span>
-                        </div>
-                        <div class="es-metrics-grid es-env-grid">
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Cooling Water</span>
-                                <span class="es-metric-val color-safe">${waterTemp}°C</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Humidity</span>
-                                <span class="es-metric-val">${humidity}% RH</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Ambient Temp</span>
-                                <span class="es-metric-val">${ambientTemp}°C</span>
-                            </div>
-                            <div class="es-metric-cell">
-                                <span class="es-metric-label">Air Pressure</span>
-                                <span class="es-metric-val">${airPressure} kPa</span>
-                            </div>
-                            <div class="es-metric-cell es-metric-span-full">
-                                <span class="es-metric-label">Environmental Status</span>
-                                <span class="es-metric-val color-safe">OPTIMAL (PASS)</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 3: LASER HEAD HEALTH (DUAL-HEAD COMPARISON) -->
-                <div class="es-card es-card-heads">
-                    <div class="es-card-header">
-                        <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                        <span>LASER HEAD HEALTH COMPARISON (${lasers.length} HEADS)</span>
-                    </div>
-                    <div class="es-table-responsive">
-                        <table class="es-table">
-                            <thead>
-                                <tr>
-                                    <th>Laser Head</th>
-                                    <th>Runtime</th>
-                                    <th>Remaining Hours</th>
-                                    <th>Remaining %</th>
-                                    <th>Temperature</th>
-                                    <th>Status</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                ${headRowsHtml}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- TWO-COLUMN ROW: TIMELINE & ALERTS -->
-                <div class="es-grid es-grid-split">
-                    <!-- SECTION 5: MAINTENANCE TIMELINE -->
-                    <div class="es-card es-card-timeline">
-                        <div class="es-card-header">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                            <span>MAINTENANCE TIMELINE (NEWEST FIRST)</span>
-                        </div>
-                        <div class="es-timeline-list">
-                            ${timelineHtml}
-                        </div>
-                    </div>
-
-                    <!-- SECTION 6: ACTIVE ENGINEERING ALERTS -->
-                    <div class="es-card es-card-alerts">
-                        <div class="es-card-header">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
-                            <span>ACTIVE ENGINEERING ALERTS</span>
-                        </div>
-                        <div class="es-alerts-list">
-                            ${alertsHtml}
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SECTION 7: ENGINEER ACTIONS -->
-                <div class="es-footer">
-                    <div class="es-actions-left">
-                        <button class="btn btn-primary btn-sm fleet-detail-inspect-btn" type="button">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                            <span>Inspect Full Machine Details</span>
-                        </button>
-                    </div>
-                    <div class="es-actions-right">
-                        <button class="btn btn-secondary btn-sm fleet-detail-edit-btn" type="button">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                            <span>Edit Machine</span>
-                        </button>
-                        <button class="btn btn-secondary btn-sm fleet-detail-delete-btn" type="button">
-                            <svg class="icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            <span>Delete Machine</span>
-                        </button>
-                    </div>
-                </div>
-            `;
-
-            // Close button
-            const btnClose = panel.querySelector('.fleet-detail-close-btn');
-            if (btnClose) {
-                btnClose.onclick = (e) => {
-                    e.stopPropagation();
-                    AppState.expandedCardId = null;
-                    DashboardController.renderFleetView(container, machines, filters, evalTime, onSelectMachine, onEditMachine, onDeleteMachine);
-                };
-            }
-
-            // Inspect button
-            const btnInspect = panel.querySelector('.fleet-detail-inspect-btn');
-            if (btnInspect) {
-                btnInspect.onclick = (e) => {
-                    e.stopPropagation();
-                    if (typeof onSelectMachine === 'function') {
-                        const cardEl = container.querySelector(`.machine-card[data-id="${machine.id}"]`);
-                        onSelectMachine(machine.id, cardEl || panel);
-                    }
-                };
-            }
-
-            // Edit button
-            const btnEdit = panel.querySelector('.fleet-detail-edit-btn');
-            if (btnEdit) {
-                btnEdit.onclick = (e) => {
-                    e.stopPropagation();
-                    if (typeof onEditMachine === 'function') {
-                        onEditMachine(machine.id);
-                    }
-                };
-            }
-
-            // Delete button
-            const btnDel = panel.querySelector('.fleet-detail-delete-btn');
-            if (btnDel) {
-                btnDel.onclick = (e) => {
-                    e.stopPropagation();
-                    if (typeof onDeleteMachine === 'function') {
-                        onDeleteMachine(machine.id);
-                    }
-                };
-            }
-
-            return panel;
-        };
-
         // Render machine cards directly in strict user-selected sort order
         const gridSection = document.createElement('div');
         gridSection.className = 'fleet-unified-grid';
@@ -1107,31 +686,6 @@ export const DashboardController = {
             cardsGrid.appendChild(buildCard(m, isAlarm));
         });
         container.appendChild(gridSection);
-
-        // If a card is expanded, insert the full-width detail panel immediately below its visual row
-        if (AppState.expandedCardId) {
-            const expandedMachine = filtered.find(m => m.id === AppState.expandedCardId);
-            if (expandedMachine) {
-                const detailPanel = buildDetailPanel(expandedMachine);
-                const selectedCard = cardsGrid.querySelector(`.machine-card[data-id="${AppState.expandedCardId}"]`);
-                if (selectedCard) {
-                    const allCards = Array.from(cardsGrid.querySelectorAll('.machine-card'));
-                    const selectedIdx = allCards.indexOf(selectedCard);
-                    const selectedTop = selectedCard.offsetTop;
-                    let targetCard = selectedCard;
-                    for (let i = selectedIdx; i < allCards.length; i++) {
-                        if (Math.abs(allCards[i].offsetTop - selectedTop) < 10) {
-                            targetCard = allCards[i];
-                        } else {
-                            break;
-                        }
-                    }
-                    targetCard.after(detailPanel);
-                } else {
-                    cardsGrid.appendChild(detailPanel);
-                }
-            }
-        }
     }
 };
 

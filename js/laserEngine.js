@@ -263,13 +263,6 @@ export const LaserEngine = {
     /**
      * Calculate metrics for an individual laser head.
      */
-    calculateSingleLaserMetrics(machineOrLaser, laserOrTime, currentTime) {
-        // Support both (laser, currentTime) and (machine, laser, currentTime) signatures
-        const laser = (laserOrTime && typeof laserOrTime === 'object') ? laserOrTime : machineOrLaser;
-        const time = (laserOrTime && typeof laserOrTime === 'object') ? currentTime : laserOrTime;
-        return this.calculateLaserMetrics(laser, time);
-    },
-
     calculateLaserMetrics(laser, currentTime) {
         let now = currentTime ? new Date(currentTime) : new Date();
         if (isNaN(now.getTime())) now = new Date();
