@@ -841,19 +841,16 @@ const openReplaceLaserModal = (mId, laserId) => {
         const laser = machine.lasers.find(l => l.id === laserId) || machine.lasers[0];
         if (!laser) return;
 
-        const currentGen = laser.generation || (laser.replacementHistory ? laser.replacementHistory.length + 1 : (laser.lifecycleHistory ? laser.lifecycleHistory.length + 1 : 1));
         const evalTime = getEvalTime();
         const estHour = LaserEngine.calculateEstimatedHour(laser.baseLaserHour || 0, safeToISOString(laser.baseTimestamp), evalTime);
         const estDisplay = Math.round(estHour * 10) / 10;
 
         const titleEl = document.getElementById('repl-laser-title');
         const serialEl = document.getElementById('repl-laser-serial');
-        const genEl = document.getElementById('repl-laser-current-gen');
         const targetLaserInput = document.getElementById('repl-target-laser-id');
 
         if (titleEl) titleEl.textContent = `${laser.name} (${machine.machineName || machine.machineNo})`;
         if (serialEl) serialEl.textContent = `SN: ${laser.serialNo || 'N/A'} • Active Runtime: ${estDisplay} hrs`;
-        if (genEl) genEl.textContent = `Gen ${currentGen} (Active)`;
         if (targetLaserInput) targetLaserInput.value = laser.id;
 
         if (DOM.replModalTitle) DOM.replModalTitle.textContent = `Replace Laser Unit — ${laser.name}`;
@@ -1089,7 +1086,7 @@ function setupEventListeners() {
             AppState.machines = StorageService.loadMachines();
 
             closeReplaceLaserModal();
-            UI.showToast(`Replaced ${laser.name} (Now Gen ${laser.generation}) ✓`, 'success');
+            UI.showToast(`Replaced ${laser.name} ✓`, 'success');
 
             const updatedMachine = AppState.machines.find(m => m.id === machId);
             if (updatedMachine) {
@@ -1770,7 +1767,7 @@ function setupEventListeners() {
                 id: `MAINT-${Date.now()}`,
                 date: installDate,
                 engineer: engineerName || 'Optics Specialist',
-                action: `Replaced ${laser.name} (Gen ${currentGen} → Gen ${laser.generation})`,
+                action: `Replaced ${laser.name}`,
                 notes: `Reset baseline to ${newBaselineHour} hrs. Previous runtime: ${Math.round(prevEstHour)} hrs. Reason: ${reason}. ${notes ? `Notes: ${notes}` : ''}`
             });
 
@@ -1778,7 +1775,7 @@ function setupEventListeners() {
             AppState.machines = StorageService.loadMachines();
 
             closeReplaceLaserModal();
-            UI.showToast(`Successfully replaced ${laser.name} (Now Gen ${laser.generation}) ✓`, 'success');
+            UI.showToast(`Successfully replaced ${laser.name} ✓`, 'success');
 
             const currentEval = getEvalTime();
             MachineController.renderMaintenanceLog(machine, DOM.maintTbody);

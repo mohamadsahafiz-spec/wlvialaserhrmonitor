@@ -231,20 +231,17 @@ export const MachineController = {
             if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
             if (lm.status === 'BASELINE_REQUIRED') { badgeClass = 'color-baseline'; dotColor = '#3b82f6'; }
 
-            const genNumber = lm.generation || (lm.replacementHistory ? lm.replacementHistory.length + 1 : (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1));
-
             const row = document.createElement('div');
             row.className = 'overview-laser-compact-row';
             row.id = `overview-laser-row-${lm.id}`;
             row.setAttribute('data-laser-id', lm.id);
             row.setAttribute('tabindex', '0');
             row.setAttribute('role', 'button');
-            row.setAttribute('aria-label', `${lm.name} Gen ${genNumber}: ${lm.status}`);
+            row.setAttribute('aria-label', `${lm.name}: ${lm.status}`);
 
             row.innerHTML = `
                 <div class="olcr-info" style="display:flex; align-items:center; gap:10px;">
                     <span class="olcr-name" style="font-weight:700; font-size:13px; color:var(--text);">${lm.name}</span>
-                    <span class="olcr-gen badge badge-info" style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:4px;">Gen ${genNumber}</span>
                 </div>
                 <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10.5px; padding:2px 8px; display:inline-flex; align-items:center; gap:6px;">
                     <div class="mc-led" style="width:6.5px; height:6.5px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
@@ -430,22 +427,22 @@ export const MachineController = {
             let dateDisplay = latest.date;
             if (dateDisplay.includes('T')) dateDisplay = dateDisplay.split('T')[0];
 
-            if (badgeEl) badgeEl.textContent = `Gen ${latest.nextGeneration} Active`;
+            if (badgeEl) badgeEl.textContent = 'Active Replacement';
             if (dateEl) dateEl.textContent = dateDisplay;
             if (targetEl) targetEl.textContent = `${latest.laserName} (SN: ${latest.laserSerial})`;
             if (reasonEl) reasonEl.textContent = latest.reason;
             if (engEl) engEl.textContent = `Logged by ${latest.engineer}`;
             if (runtimeEl) runtimeEl.textContent = typeof latest.previousRuntime === 'number' ? `${latest.previousRuntime.toLocaleString()} hrs` : `${latest.previousRuntime} hrs`;
-            if (genEl) genEl.textContent = `Swapped: Gen ${latest.generation} → Gen ${latest.nextGeneration}`;
+            if (genEl) genEl.textContent = 'Replacement Recorded';
         } else {
             const baseDate = machine.baseTimestamp ? formatDate(machine.baseTimestamp) : 'Factory Baseline';
-            if (badgeEl) badgeEl.textContent = 'Original Gen 1 Unit';
+            if (badgeEl) badgeEl.textContent = 'Original Baseline';
             if (dateEl) dateEl.textContent = baseDate;
             if (targetEl) targetEl.textContent = 'Factory Baseline Initialized';
             if (reasonEl) reasonEl.textContent = 'Original Factory Diode Unit';
             if (engEl) engEl.textContent = 'No replacements logged to date';
             if (runtimeEl) runtimeEl.textContent = '0 hrs (Initial Setup)';
-            if (genEl) genEl.textContent = 'Gen 1 Standard Lifecycle';
+            if (genEl) genEl.textContent = 'Standard Lifecycle';
         }
     },
 
@@ -651,7 +648,6 @@ export const MachineController = {
             }
 
             const lastRecalText = lm.lastRecalibrationDate ? formatDate(lm.lastRecalibrationDate) : (lm.baseTimestamp ? formatDate(lm.baseTimestamp) : 'Initial Baseline');
-            const genNumber = lm.generation || (lm.replacementHistory ? lm.replacementHistory.length + 1 : (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1));
 
             const contingencyInfoHtml = lm.isContingencyActive ? `
                 <div style="padding: 6px 10px; background: rgba(239, 68, 68, 0.12); border: 1px solid var(--red); border-radius: 6px; font-size: 11px; color: #fca5a5; font-weight: 700; line-height: 1.35;">
@@ -668,16 +664,9 @@ export const MachineController = {
 
             card.innerHTML = `
                 <div class="lhc-header">
-                    <div>
-                        <div style="display:flex; align-items:center; gap:6px;">
-                            <div class="lhc-title">${lm.name}</div>
-                            <span class="badge badge-info" style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px;">Gen ${genNumber}</span>
-                        </div>
+                    <div class="lhc-identity">
+                        <div class="lhc-title">${lm.name}</div>
                         <div class="lhc-subtitle">SN: ${lm.serialNo}</div>
-                    </div>
-                    <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10px; padding:2px 8px;">
-                        <div class="mc-led" style="width:7px; height:7px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
-                        ${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE' : lm.status}
                     </div>
                 </div>
 
@@ -1061,7 +1050,7 @@ export const MachineController = {
                 <div style="text-align:center; padding:36px 16px; color:var(--muted); font-size:13px;" class="glass-panel">
                     <svg class="icon" viewBox="0 0 24 24" style="width:36px;height:36px;margin-bottom:8px;stroke:var(--muted);opacity:0.6;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
                     <div style="font-weight:700; color:var(--text); margin-bottom:4px;">No Laser Diode Replacements Recorded</div>
-                    <div>Active laser heads are currently operating on their original Gen 1 factory baseline.</div>
+                    <div>Active laser heads are currently operating on their original factory baseline.</div>
                 </div>
             `;
             return;
@@ -1082,7 +1071,6 @@ export const MachineController = {
                     <div class="repl-title-group">
                         <div class="repl-title">
                             <span>${rec.laserName}</span>
-                            <span class="badge badge-info" style="font-size:10px; font-weight:700;">Gen ${rec.generation} → Gen ${rec.nextGeneration}</span>
                         </div>
                         <div class="repl-meta">Serial: <strong>${rec.laserSerial}</strong> • Replaced on <strong>${formattedDate}</strong></div>
                     </div>
@@ -1135,7 +1123,7 @@ export const MachineController = {
                             category: 'Laser Replacement',
                             badgeClass: 'badge-info',
                             title: `Laser Unit Replaced — ${repl.laserName || laser.name}`,
-                            subtitle: `Gen ${repl.generation || 1} Retired at ${repl.retiredHours ?? '—'} hrs (SN: ${repl.serialNo || laser.serialNo})`,
+                            subtitle: `Retired at ${repl.retiredHours ?? '—'} hrs (SN: ${repl.serialNo || laser.serialNo})`,
                             date: repl.retiredDate || repl.installDate || repl.date || 'N/A',
                             engineer: repl.engineer || 'Optics Engineer',
                             reason: repl.reason || 'End-of-Life Reached',

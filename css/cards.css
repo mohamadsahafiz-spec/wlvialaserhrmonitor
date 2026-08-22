@@ -1526,17 +1526,25 @@
     gap: 8px;
 }
 
+.lhc-identity {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
 .lhc-title {
     font-size: 15px;
     font-weight: 800;
     color: var(--text);
     letter-spacing: -0.2px;
+    line-height: 1.25;
 }
 
 .lhc-subtitle {
+    font-family: var(--font-mono);
     font-size: 11px;
     color: var(--muted);
-    margin-top: 1px;
+    letter-spacing: 0.2px;
 }
 
 .lhc-stats {
