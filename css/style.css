@@ -171,55 +171,58 @@
     --red: var(--color-alarm);
 }
 
-[data-theme="light"] {
+[data-theme="midnight"],
+[data-theme="midnight-blue"] {
     /* -----------------------------------------------------
-       LIGHT THEME - INDUSTRIAL PRECISION LAB SURFACE
+       MIDNIGHT BLUE THEME - REFINED ENGINEERING SLATE & NAVY
+       Slightly softer blue-gray backgrounds, zero white backgrounds
        ----------------------------------------------------- */
-    --color-bg-base: #f0f2f5;
-    --color-bg-surface: #ffffff;
-    --color-bg-surface-elevated: #e6ebf1;
-    --color-bg-surface-hover: #e0e6ee;
-    --color-bg-input: #f4f6f9;
+    --color-bg-base: #0a0f1d;             /* Deep navy obsidian canvas */
+    --color-bg-surface: #111a2e;          /* Primary Slate-Navy Surface */
+    --color-bg-surface-elevated: #18243c; /* Elevated Surface / Control */
+    --color-bg-surface-hover: #1f304f;    /* Interactive hover state */
+    --color-bg-input: #0b1120;            /* Recessed well / telemetry track */
     
-    --color-border-subtle: #e5e9f0;
-    --color-border-base: #d2d8e2;
-    --color-border-highlight: #a2adb9;
-    --color-border-focus: #0891b2;
+    --color-border-subtle: rgba(148, 163, 184, 0.08);
+    --color-border-base: rgba(148, 163, 184, 0.16);
+    --color-border-highlight: rgba(148, 163, 184, 0.28);
+    --color-border-focus: #38bdf8;
     
-    --color-text-primary: #111827;
-    --color-text-secondary: #5e6b7d;
-    --color-text-muted: #8b98a9;
-    --color-text-inverse: #ffffff;
+    --color-text-primary: #f8fafc;
+    --color-text-secondary: #94a3b8;
+    --color-text-muted: #64748b;
+    --color-text-inverse: #0a0f1d;
     
-    --color-primary: #0891b2;
-    --color-primary-hover: #0e7490;
-    --color-primary-subtle: rgba(8, 145, 178, 0.08);
-    --color-primary-border: rgba(8, 145, 178, 0.25);
+    /* Semantic Status - Preserved Accents */
+    --color-primary: #38bdf8;            /* Precision Sky Cyan */
+    --color-primary-hover: #0ea5e9;
+    --color-primary-subtle: rgba(56, 189, 248, 0.1);
+    --color-primary-border: rgba(56, 189, 248, 0.3);
     
-    --color-safe: #059669;
-    --color-safe-hover: #047857;
-    --color-safe-subtle: rgba(5, 150, 105, 0.08);
-    --color-safe-border: rgba(5, 150, 105, 0.25);
+    --color-safe: #10b981;               /* Nominal Green */
+    --color-safe-hover: #059669;
+    --color-safe-subtle: rgba(16, 185, 129, 0.1);
+    --color-safe-border: rgba(16, 185, 129, 0.28);
     
-    --color-warning: #d97706;
-    --color-warning-hover: #b45309;
-    --color-warning-subtle: rgba(217, 119, 6, 0.08);
-    --color-warning-border: rgba(217, 119, 6, 0.25);
+    --color-warning: #f59e0b;            /* Threshold Amber */
+    --color-warning-hover: #d97706;
+    --color-warning-subtle: rgba(245, 158, 11, 0.1);
+    --color-warning-border: rgba(245, 158, 11, 0.28);
     
-    --color-alarm: #e11d48;
-    --color-alarm-hover: #be123c;
-    --color-alarm-subtle: rgba(225, 29, 72, 0.08);
-    --color-alarm-border: rgba(225, 29, 72, 0.25);
+    --color-alarm: #f43f5e;              /* Contingency Red */
+    --color-alarm-hover: #e11d48;
+    --color-alarm-subtle: rgba(244, 63, 94, 0.1);
+    --color-alarm-border: rgba(244, 63, 94, 0.32);
     
-    --color-purple: #9333ea;
-    --color-purple-subtle: rgba(147, 51, 234, 0.08);
-    --color-purple-border: rgba(147, 51, 234, 0.25);
+    --color-purple: #a855f7;             /* Recalibration Purple */
+    --color-purple-subtle: rgba(168, 85, 247, 0.1);
+    --color-purple-border: rgba(168, 85, 247, 0.28);
     
-    --elevation-1: 0 1px 3px 0 rgba(0, 0, 0, 0.08), 0 1px 2px 0 rgba(0, 0, 0, 0.04), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
-    --elevation-2: 0 4px 10px -2px rgba(0, 0, 0, 0.1), 0 2px 4px 0 rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
-    --elevation-3: 0 10px 22px -4px rgba(0, 0, 0, 0.12), 0 4px 8px -2px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
-    --elevation-4: 0 18px 36px -6px rgba(17, 24, 39, 0.16), 0 6px 12px -2px rgba(17, 24, 39, 0.08), inset 0 1px 0 0 #ffffff;
-    --elevation-recessed: inset 0 1px 2px 0 rgba(0, 0, 0, 0.08), inset 0 0 0 1px rgba(0, 0, 0, 0.04), 0 1px 0 0 #ffffff;
+    --elevation-1: 0 1px 3px 0 rgba(2, 6, 23, 0.5), 0 1px 2px 0 rgba(2, 6, 23, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    --elevation-2: 0 4px 14px -2px rgba(2, 6, 23, 0.6), 0 2px 4px 0 rgba(2, 6, 23, 0.4), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+    --elevation-3: 0 10px 26px -4px rgba(2, 6, 23, 0.7), 0 4px 8px -2px rgba(2, 6, 23, 0.45), inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    --elevation-4: 0 20px 50px -8px rgba(2, 6, 23, 0.85), 0 8px 16px -4px rgba(2, 6, 23, 0.55), inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+    --elevation-recessed: inset 0 1px 3px 0 rgba(2, 6, 23, 0.6), inset 0 0 0 1px rgba(2, 6, 23, 0.35), 0 1px 0 0 rgba(255, 255, 255, 0.04);
     
     --bg-body: var(--color-bg-base);
     --bg-surface: var(--color-bg-surface);
@@ -1301,33 +1304,6 @@ body::before {
     width: 100%;
 }
 
-/* Light Theme overrides for modal components */
-[data-theme="light"] .modal-overlay {
-    background: rgba(15, 23, 42, 0.65);
-}
-
-[data-theme="light"] .modal-content {
-    background: var(--color-bg-surface);
-    border: 1px solid var(--color-border-base);
-    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
-}
-
-[data-theme="light"] .modal-header,
-[data-theme="light"] .modal-footer {
-    background: var(--color-bg-surface);
-    border-color: var(--color-border-subtle);
-}
-
-[data-theme="light"] .modal-close {
-    color: var(--color-text-secondary);
-}
-
-[data-theme="light"] .modal-close:hover {
-    background: rgba(220, 38, 38, 0.1);
-    color: #dc2626;
-    border-color: rgba(220, 38, 38, 0.25);
-}
-
 /* =====================================================
    6. ENTERPRISE STARTUP INITIALIZATION LOADER
    Prevents intermediate KPI placeholder flash during boot
@@ -1350,8 +1326,8 @@ body::before {
     transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-[data-theme="light"] .app-startup-loader {
-    background: #f8fafc;
+[data-theme="midnight"] .app-startup-loader {
+    background: #0a0f1d;
 }
 
 .app-startup-loader.fade-out {
@@ -1443,4 +1419,160 @@ body::before {
     0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
     50% { transform: scale(1.04); box-shadow: 0 0 25px rgba(6, 182, 212, 0.4); }
 }
+
+/* =====================================================
+   7. APPEARANCE SETTINGS & THEME SELECTOR
+   ===================================================== */
+.theme-options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-2);
+}
+
+.theme-option-card {
+    display: block;
+    position: relative;
+    cursor: pointer;
+    background: var(--color-bg-surface-elevated);
+    border: 1px solid var(--color-border-base);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    transition: var(--transition-base);
+}
+
+.theme-option-card:hover {
+    border-color: var(--color-border-highlight);
+    background: var(--color-bg-surface-hover);
+}
+
+.theme-option-card input[type="radio"] {
+    position: absolute;
+    top: var(--space-4);
+    right: var(--space-4);
+    accent-color: var(--color-primary);
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.theme-option-card.active,
+.theme-option-card:has(input[type="radio"]:checked) {
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 1px var(--color-primary), 0 4px 16px rgba(0, 216, 246, 0.12);
+}
+
+.theme-option-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    padding-right: var(--space-6);
+}
+
+.theme-swatch-box {
+    width: 100%;
+    height: 68px;
+    border-radius: var(--radius-sm);
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    overflow: hidden;
+    border: 1px solid var(--color-border-subtle);
+}
+
+.dark-swatch-preview {
+    background: #0c0e12;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+.dark-swatch-preview .swatch-topbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.dark-swatch-preview .swatch-dot.cyan {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #00d8f6;
+    box-shadow: 0 0 5px #00d8f6;
+}
+
+.dark-swatch-preview .swatch-bar {
+    width: 44px;
+    height: 4px;
+    border-radius: 2px;
+    background: #1c212a;
+}
+
+.dark-swatch-preview .swatch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+}
+
+.dark-swatch-preview .swatch-mini-card {
+    background: #14171d;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 3px;
+}
+
+.midnight-swatch-preview {
+    background: #0a0f1d;
+    border-color: rgba(148, 163, 184, 0.16);
+}
+
+.midnight-swatch-preview .swatch-topbar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.midnight-swatch-preview .swatch-dot.blue {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #38bdf8;
+    box-shadow: 0 0 5px #38bdf8;
+}
+
+.midnight-swatch-preview .swatch-bar {
+    width: 44px;
+    height: 4px;
+    border-radius: 2px;
+    background: #18243c;
+}
+
+.midnight-swatch-preview .swatch-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    flex: 1;
+}
+
+.midnight-swatch-preview .swatch-mini-card {
+    background: #111a2e;
+    border: 1px solid rgba(148, 163, 184, 0.14);
+    border-radius: 3px;
+}
+
+.theme-option-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-bold);
+    color: var(--color-text-primary);
+}
+
+.theme-option-desc {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    margin-top: 2px;
+}
+
 

@@ -30,7 +30,8 @@
             if (rawSettings) {
                 const parsed = JSON.parse(rawSettings);
                 if (parsed && parsed.theme) {
-                    document.documentElement.setAttribute('data-theme', parsed.theme);
+                    const theme = parsed.theme === 'midnight' ? 'midnight' : 'dark';
+                    document.documentElement.setAttribute('data-theme', theme);
                 }
             }
         } catch (e) {}
@@ -99,12 +100,6 @@
                         <span class="user-role-badge role-eng">Full Access</span>
                     </div>
                     <svg class="icon user-dropdown-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
-                </button>
-
-                <!-- System Theme Switcher -->
-                <button id="btn-theme" class="btn-icon theme-toggle-btn" title="Toggle Light/Dark Theme">
-                    <svg class="icon icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                    <svg class="icon icon-moon hidden" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
                 </button>
             </div>
         </div>
@@ -788,7 +783,67 @@
         </section>
 
     <section id="view-settings" class="settings-view">
-            <!-- 1. System Configuration -->
+            <!-- 1. Appearance Section -->
+            <div class="glass-panel panel-section">
+                <div class="panel-header">
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        <svg class="icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0;"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2"></path><path d="M12 20v2"></path><path d="m4.93 4.93 1.41 1.41"></path><path d="m17.66 17.66 1.41 1.41"></path><path d="M2 12h2"></path><path d="M20 12h2"></path><path d="m6.34 17.66-1.41 1.41"></path><path d="m19.07 4.93-1.41 1.41"></path></svg>
+                        <h2>Appearance</h2>
+                    </div>
+                    <span class="badge badge-info">Theme Engine</span>
+                </div>
+                <p style="font-size:13px; color:var(--color-text-secondary); margin-bottom:16px; line-height:1.5;">
+                    Select the system visual theme for telemetry workspaces, diagnostic views, and control panels.
+                </p>
+                <div class="theme-options-grid">
+                    <label class="theme-option-card" id="theme-card-dark">
+                        <input type="radio" name="app-theme" value="dark" id="theme-radio-dark" checked>
+                        <div class="theme-option-content">
+                            <div class="theme-swatch-box dark-swatch-preview">
+                                <div class="swatch-topbar">
+                                    <span class="swatch-dot cyan"></span>
+                                    <span class="swatch-bar"></span>
+                                </div>
+                                <div class="swatch-grid">
+                                    <div class="swatch-mini-card"></div>
+                                    <div class="swatch-mini-card"></div>
+                                </div>
+                            </div>
+                            <div class="theme-option-text">
+                                <div class="theme-option-title">
+                                    <span>Industrial Dark</span>
+                                    <span class="badge badge-subtle">Default</span>
+                                </div>
+                                <div class="theme-option-desc">Deep matte carbon obsidian canvas with high-contrast cyan precision indicators.</div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <label class="theme-option-card" id="theme-card-midnight">
+                        <input type="radio" name="app-theme" value="midnight" id="theme-radio-midnight">
+                        <div class="theme-option-content">
+                            <div class="theme-swatch-box midnight-swatch-preview">
+                                <div class="swatch-topbar">
+                                    <span class="swatch-dot blue"></span>
+                                    <span class="swatch-bar"></span>
+                                </div>
+                                <div class="swatch-grid">
+                                    <div class="swatch-mini-card"></div>
+                                    <div class="swatch-mini-card"></div>
+                                </div>
+                            </div>
+                            <div class="theme-option-text">
+                                <div class="theme-option-title">
+                                    <span>Midnight Blue</span>
+                                </div>
+                                <div class="theme-option-desc">Softened navy and blue-gray background canvas with refined optical hierarchy.</div>
+                            </div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- 2. System Configuration -->
             <div class="glass-panel panel-section">
                 <div class="panel-header">
                     <div style="display:flex; align-items:center; gap:8px;">

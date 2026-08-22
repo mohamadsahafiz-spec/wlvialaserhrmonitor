@@ -526,6 +526,9 @@ export const StorageService = {
             if (parsed.systemTitle === "Wafer Driller BMD302W/BMD250WM Management") {
                 parsed.systemTitle = "Laser Management System";
             }
+            if (parsed.theme === 'light' || !['dark', 'midnight'].includes(parsed.theme)) {
+                parsed.theme = 'dark';
+            }
             const result = { ...defaults, ...parsed };
             _cachedSettings = result;
             return result;

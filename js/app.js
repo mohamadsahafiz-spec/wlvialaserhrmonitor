@@ -257,6 +257,10 @@ function initDOM() {
         cfgWarnPct: document.getElementById('cfg-warn-pct'),
         cfgRecalInterval: document.getElementById('cfg-recal-interval'),
         cfgEngStatus: document.getElementById('cfg-eng-status'),
+        themeRadioDark: document.getElementById('theme-radio-dark'),
+        themeRadioMidnight: document.getElementById('theme-radio-midnight'),
+        themeCardDark: document.getElementById('theme-card-dark'),
+        themeCardMidnight: document.getElementById('theme-card-midnight'),
         btnOpenChangePassword: document.getElementById('btn-open-change-password'),
         changePasswordOverlay: document.getElementById('change-password-modal-overlay'),
         btnCloseChangePassword: document.getElementById('btn-close-change-password'),
@@ -384,6 +388,9 @@ function populateSettingsForm() {
             Status: Configured
         `;
     }
+
+    const currentTheme = AppState.settings.theme === 'midnight' ? 'midnight' : 'dark';
+    UI.applyTheme(currentTheme);
 }
 
 function dismissStartupLoader() {
@@ -2040,6 +2047,29 @@ function setupEventListeners() {
         });
     }
 
+    // Appearance Theme Selector Handlers
+    const handleThemeSelection = (selectedTheme) => {
+        const theme = selectedTheme === 'midnight' ? 'midnight' : 'dark';
+        AppState.settings.theme = theme;
+        UI.applyTheme(theme);
+        StorageService.saveSettings(AppState.settings);
+        StorageService.saveSettingsAsync(AppState.settings);
+        window.dispatchEvent(new CustomEvent('lms-settings-updated', { detail: AppState.settings }));
+        UI.showToast(`Theme updated: ${theme === 'midnight' ? 'Midnight Blue' : 'Industrial Dark'}`, 'info');
+    };
+
+    if (DOM.themeRadioDark) {
+        DOM.themeRadioDark.addEventListener('change', () => {
+            if (DOM.themeRadioDark.checked) handleThemeSelection('dark');
+        });
+    }
+
+    if (DOM.themeRadioMidnight) {
+        DOM.themeRadioMidnight.addEventListener('change', () => {
+            if (DOM.themeRadioMidnight.checked) handleThemeSelection('midnight');
+        });
+    }
+
     // Save & Restore Settings Buttons
     if (DOM.btnSaveSettings) {
         DOM.btnSaveSettings.addEventListener('click', async () => {
@@ -2053,6 +2083,12 @@ function setupEventListeners() {
             }
             if (DOM.cfgRecalInterval && DOM.cfgRecalInterval.value) {
                 AppState.settings.recalibrationInterval = Number(DOM.cfgRecalInterval.value);
+            }
+
+            const selectedThemeRadio = document.querySelector('input[name="app-theme"]:checked');
+            if (selectedThemeRadio) {
+                AppState.settings.theme = selectedThemeRadio.value === 'midnight' ? 'midnight' : 'dark';
+                UI.applyTheme(AppState.settings.theme);
             }
 
             await StorageService.saveSettingsAsync(AppState.settings);
@@ -2070,7 +2106,9 @@ function setupEventListeners() {
             AppState.settings.defaultWarningPercentage = 80;
             AppState.settings.recalibrationInterval = 30;
             AppState.settings.engineerPassword = "1234";
+            AppState.settings.theme = "dark";
 
+            UI.applyTheme("dark");
             await StorageService.saveSettingsAsync(AppState.settings);
             populateSettingsForm();
             updateAppTitle();

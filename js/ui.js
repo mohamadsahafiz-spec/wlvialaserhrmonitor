@@ -5,37 +5,52 @@ import { formatHours, formatDate } from './utils.js';
 
 export const UI = {
     /**
-     * Toggle Theme (Light / Dark)
+     * Toggle Theme ('dark' / 'midnight')
      */
     toggleTheme() {
-        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
-        const nextTheme = isLight ? 'dark' : 'light';
+        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+        const nextTheme = currentTheme === 'midnight' ? 'dark' : 'midnight';
         this.applyTheme(nextTheme);
         return nextTheme;
     },
 
     /**
-     * Apply initial theme from saved preference
+     * Apply theme from saved preference ('dark' or 'midnight')
      */
     applyTheme(theme) {
-        if (theme) {
-            document.documentElement.setAttribute('data-theme', theme);
+        let activeTheme = theme || 'dark';
+        if (activeTheme === 'light') {
+            activeTheme = 'dark'; // Light theme is replaced by industrial dark & midnight
         }
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
-        const btnTheme = document.getElementById('btn-theme');
-        if (btnTheme) {
-            const sun = btnTheme.querySelector('.icon-sun');
-            const moon = btnTheme.querySelector('.icon-moon');
-            if (currentTheme === 'light') {
-                if (sun) sun.classList.add('hidden');
-                if (moon) moon.classList.remove('hidden');
-                btnTheme.title = 'Switch to Dark Mode';
+        if (activeTheme !== 'midnight') {
+            activeTheme = 'dark';
+        }
+        document.documentElement.setAttribute('data-theme', activeTheme);
+
+        const radioDark = document.getElementById('theme-radio-dark');
+        const radioMidnight = document.getElementById('theme-radio-midnight');
+        const cardDark = document.getElementById('theme-card-dark');
+        const cardMidnight = document.getElementById('theme-card-midnight');
+
+        if (radioDark && radioMidnight) {
+            if (activeTheme === 'midnight') {
+                radioMidnight.checked = true;
+                radioDark.checked = false;
             } else {
-                if (sun) sun.classList.remove('hidden');
-                if (moon) moon.classList.add('hidden');
-                btnTheme.title = 'Switch to Light Mode';
+                radioDark.checked = true;
+                radioMidnight.checked = false;
             }
         }
+        if (cardDark && cardMidnight) {
+            if (activeTheme === 'midnight') {
+                cardMidnight.classList.add('active');
+                cardDark.classList.remove('active');
+            } else {
+                cardDark.classList.add('active');
+                cardMidnight.classList.remove('active');
+            }
+        }
+        return activeTheme;
     },
 
     /**
