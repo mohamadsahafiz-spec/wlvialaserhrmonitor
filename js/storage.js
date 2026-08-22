@@ -502,25 +502,25 @@ export const StorageService = {
         return machines;
     },
 
-    loadSettings() {
-        if (_cachedSettings !== null) {
+    loadSettings(forceReload = false) {
+        if (!forceReload && _cachedSettings !== null) {
             return _cachedSettings;
         }
+        const defaults = {
+            systemTitle: "Laser Management System",
+            version: "1.0",
+            theme: "dark",
+            defaultRatedLife: 25000,
+            defaultWarningPercentage: 80,
+            recalibrationInterval: 30,
+            engineerPassword: "1234",
+            accessMode: "ENGINEER"
+        };
         try {
             const raw = localStorage.getItem(SETTINGS_KEY);
-            const defaults = {
-                systemTitle: "Laser Management System",
-                version: "1.0",
-                theme: "dark",
-                defaultRatedLife: 25000,
-                defaultWarningPercentage: 80,
-                recalibrationInterval: 30,
-                engineerPassword: "1234",
-                accessMode: "ENGINEER"
-            };
             if (!raw) {
-                _cachedSettings = defaults;
-                return defaults;
+                _cachedSettings = { ...defaults };
+                return _cachedSettings;
             }
             const parsed = JSON.parse(raw);
             if (parsed.systemTitle === "Wafer Driller BMD302W/BMD250WM Management") {
@@ -529,30 +529,46 @@ export const StorageService = {
             if (parsed.theme === 'light' || !['dark', 'midnight'].includes(parsed.theme)) {
                 parsed.theme = 'dark';
             }
-            const result = { ...defaults, ...parsed };
+            const result = { 
+                ...defaults, 
+                ...parsed,
+                engineerPassword: String(parsed.engineerPassword || defaults.engineerPassword).trim() || '1234'
+            };
             _cachedSettings = result;
             return result;
         } catch (err) {
-            const defaults = {
-                systemTitle: "Laser Management System",
-                version: "1.0",
-                theme: "dark",
-                defaultRatedLife: 25000,
-                defaultWarningPercentage: 80,
-                recalibrationInterval: 30,
-                engineerPassword: "1234",
-                accessMode: "ENGINEER"
-            };
-            _cachedSettings = defaults;
-            return defaults;
+            _cachedSettings = { ...defaults };
+            return _cachedSettings;
         }
     },
 
+    getEngineerPassword() {
+        const settings = this.loadSettings(true);
+        return String(settings.engineerPassword || '1234').trim();
+    },
+
     saveSettings(settings) {
-        _cachedSettings = settings;
+        const defaults = {
+            systemTitle: "Laser Management System",
+            version: "1.0",
+            theme: "dark",
+            defaultRatedLife: 25000,
+            defaultWarningPercentage: 80,
+            recalibrationInterval: 30,
+            engineerPassword: "1234",
+            accessMode: "ENGINEER"
+        };
+        const currentSaved = this.loadSettings();
+        const safeSettings = {
+            ...defaults,
+            ...currentSaved,
+            ...settings,
+            engineerPassword: String(settings.engineerPassword || currentSaved.engineerPassword || defaults.engineerPassword).trim() || '1234'
+        };
+        _cachedSettings = safeSettings;
         try {
-            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-            lastSettingsHash = getSettingsHash(settings);
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(safeSettings));
+            lastSettingsHash = getSettingsHash(safeSettings);
             localStorage.setItem('lms_last_sync_time', new Date().toISOString());
         } catch (err) {
             console.error('[StorageService] Error saving settings:', err);
@@ -562,22 +578,24 @@ export const StorageService = {
             fetch('/api/settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settings)
+                body: JSON.stringify(safeSettings)
             }).catch(err => {});
         }
+        return safeSettings;
     },
 
     async saveSettingsAsync(settings) {
-        this.saveSettings(settings);
+        const saved = this.saveSettings(settings);
         if (CLOUD_SYNC_ENABLED) {
             try {
                 await fetch('/api/settings', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(settings)
+                    body: JSON.stringify(saved)
                 });
             } catch (err) {}
         }
+        return saved;
     },
 
     exportBackup() {
@@ -736,19 +754,6 @@ export const StorageService = {
         return this.loadSettings();
     },
 
-    async saveSettingsAsync(settings) {
-        this.saveSettings(settings);
-        if (CLOUD_SYNC_ENABLED) {
-            try {
-                await fetch('/api/settings', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(settings)
-                });
-            } catch (err) {}
-        }
-    },
-
     initBackgroundSync(onUpdateCallback) {
         if (!CLOUD_SYNC_ENABLED) return;
 
@@ -784,7 +789,13 @@ export const StorageService = {
                 if (sRes && sRes.ok) {
                     const remoteSettings = await sRes.json();
                     if (remoteSettings && Object.keys(remoteSettings).length > 0) {
-                        const mergedSettings = { ...this.loadSettings(), ...remoteSettings };
+                        const localCurrent = this.loadSettings();
+                        const mergedSettings = { 
+                            ...localCurrent, 
+                            ...remoteSettings,
+                            engineerPassword: String(remoteSettings.engineerPassword || localCurrent.engineerPassword || '1234').trim() || '1234',
+                            accessMode: localCurrent.accessMode || remoteSettings.accessMode || 'ENGINEER'
+                        };
                         const newSHash = getSettingsHash(mergedSettings);
                         if (lastSettingsHash && newSHash !== lastSettingsHash) {
                             _cachedSettings = mergedSettings;

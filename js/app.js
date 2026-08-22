@@ -1151,7 +1151,10 @@ function setupEventListeners() {
     if (DOM.btnToggleMode) {
         DOM.btnToggleMode.addEventListener('click', () => {
             if (AppState.settings.accessMode === 'ENGINEER') {
+                const currentSettings = StorageService.loadSettings();
+                const currentPwd = (currentSettings.engineerPassword || AppState.settings.engineerPassword || '1234').trim();
                 AppState.settings.accessMode = 'CUSTOMER';
+                AppState.settings.engineerPassword = currentPwd;
                 StorageService.saveSettings(AppState.settings);
                 updateModeBadgeUI();
                 UI.showToast('Switched to Customer Mode (Read-Only)', 'warning');
@@ -1164,13 +1167,21 @@ function setupEventListeners() {
     }
 
     const submitModeAuth = () => {
-        const entered = DOM.inputModePassword ? DOM.inputModePassword.value : '';
-        const correct = AppState.settings.engineerPassword || '1234';
+        const entered = DOM.inputModePassword ? DOM.inputModePassword.value.trim() : '';
+        const currentSettings = StorageService.loadSettings(true);
+        const correct = (currentSettings.engineerPassword || AppState.settings.engineerPassword || '1234').trim();
         if (entered === correct) {
-            AppState.settings.accessMode = 'ENGINEER';
+            AppState.settings = {
+                ...currentSettings,
+                ...AppState.settings,
+                engineerPassword: correct,
+                accessMode: 'ENGINEER'
+            };
             StorageService.saveSettings(AppState.settings);
             updateModeBadgeUI();
             UI.hideModal(DOM.modeModalOverlay);
+            if (DOM.inputModePassword) DOM.inputModePassword.value = '';
+            if (DOM.modePasswordError) DOM.modePasswordError.style.display = 'none';
             UI.showToast('Engineer Mode Unlocked!', 'success');
             if (pendingEngineerAction) {
                 const cb = pendingEngineerAction;
@@ -1179,6 +1190,10 @@ function setupEventListeners() {
             }
         } else {
             if (DOM.modePasswordError) DOM.modePasswordError.style.display = 'block';
+            if (DOM.inputModePassword) {
+                DOM.inputModePassword.focus();
+                DOM.inputModePassword.select();
+            }
         }
     };
 
@@ -2098,12 +2113,18 @@ function setupEventListeners() {
 
     if (DOM.btnResetDefaults) {
         DOM.btnResetDefaults.addEventListener('click', async () => {
-            AppState.settings.systemTitle = "Laser Management System";
-            AppState.settings.defaultRatedLife = 25000;
-            AppState.settings.defaultWarningPercentage = 80;
-            AppState.settings.recalibrationInterval = 30;
-            AppState.settings.engineerPassword = "1234";
-            AppState.settings.theme = "dark";
+            const currentMode = AppState.settings.accessMode || "ENGINEER";
+            const defaultSettings = {
+                systemTitle: "Laser Management System",
+                version: "1.0",
+                theme: "dark",
+                defaultRatedLife: 25000,
+                defaultWarningPercentage: 80,
+                recalibrationInterval: 30,
+                engineerPassword: "1234",
+                accessMode: currentMode
+            };
+            AppState.settings = { ...AppState.settings, ...defaultSettings };
 
             UI.applyTheme("dark");
             await StorageService.saveSettingsAsync(AppState.settings);
@@ -2183,7 +2204,8 @@ function setupEventListeners() {
             const newVal = DOM.pwdNew ? DOM.pwdNew.value.trim() : '';
             const confirmVal = DOM.pwdConfirm ? DOM.pwdConfirm.value.trim() : '';
 
-            const expectedCurrent = AppState.settings.engineerPassword || "1234";
+            const currentSettings = StorageService.loadSettings(true);
+            const expectedCurrent = (currentSettings.engineerPassword || AppState.settings.engineerPassword || "1234").trim();
 
             if (currentVal !== expectedCurrent) {
                 if (DOM.pwdErrorMsg) {
