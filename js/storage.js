@@ -420,8 +420,11 @@ export const StorageService = {
     saveMachines(machines) {
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(machines));
+            lastMachinesHash = getMachinesHash(machines);
+            localStorage.setItem('lms_last_sync_time', new Date().toISOString());
             if (typeof window !== 'undefined') {
                 window.dispatchEvent(new CustomEvent('lms-fleet-updated', { detail: { count: machines ? machines.length : 0 } }));
+                window.dispatchEvent(new CustomEvent('lms-sync-status-changed', { detail: { status: currentSyncStatus } }));
             }
         } catch (err) {
             console.error('[StorageService] Error saving machines:', err);
@@ -513,6 +516,8 @@ export const StorageService = {
     saveSettings(settings) {
         try {
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            lastSettingsHash = getSettingsHash(settings);
+            localStorage.setItem('lms_last_sync_time', new Date().toISOString());
         } catch (err) {
             console.error('[StorageService] Error saving settings:', err);
         }
@@ -529,12 +534,41 @@ export const StorageService = {
     exportBackup() {
         const machines = this.loadMachines();
         const settings = this.loadSettings();
-        return {
+        const exportObj = {
             version: '1.0',
             exportedAt: new Date().toISOString(),
             machines: JSON.parse(JSON.stringify(machines)),
             settings: JSON.parse(JSON.stringify(settings))
         };
+        this.recordBackupTime();
+        return exportObj;
+    },
+
+    recordBackupTime() {
+        const now = new Date().toISOString();
+        try {
+            localStorage.setItem('lms_last_backup_time', now);
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('lms-sync-status-changed', { detail: { status: currentSyncStatus } }));
+            }
+        } catch (e) {}
+        return now;
+    },
+
+    getLastBackupTime() {
+        try {
+            return localStorage.getItem('lms_last_backup_time') || null;
+        } catch (e) {
+            return null;
+        }
+    },
+
+    getLastSyncTime() {
+        try {
+            return localStorage.getItem('lms_last_sync_time') || null;
+        } catch (e) {
+            return null;
+        }
     },
 
     importBackup(data) {
@@ -554,18 +588,36 @@ export const StorageService = {
         }
 
         const normalizedMachines = this.normalizeMachines(machines);
+        
+        // Single source of truth update
         this.saveMachines(normalizedMachines);
+        lastMachinesHash = getMachinesHash(normalizedMachines);
 
         if (settings) {
             this.saveSettings(settings);
+            lastSettingsHash = getSettingsHash(settings);
         }
 
+        this.recordBackupTime();
+
+        // Push authoritative import to backend
         if (CLOUD_SYNC_ENABLED) {
-            fetch('/api/sync/upload-local', {
+            updateSyncStatus('SYNCING');
+            fetch('/api/sync/import', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ machines: normalizedMachines, settings: settings || this.loadSettings() })
-            }).catch(err => console.warn('[StorageService] Backup sync error:', err));
+                body: JSON.stringify({
+                    machines: normalizedMachines,
+                    settings: settings || this.loadSettings(),
+                    overwrite: true
+                })
+            }).then(res => {
+                if (res.ok) updateSyncStatus('SYNCED');
+                else updateSyncStatus('ERROR');
+            }).catch(err => {
+                console.warn('[StorageService] Backup sync error:', err);
+                updateSyncStatus('OFFLINE');
+            });
         }
 
         return {

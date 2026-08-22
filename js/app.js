@@ -93,6 +93,15 @@ function initDOM() {
         // Share Foundation Elements
         btnShareFleet: document.getElementById('btn-share-fleet'),
         btnShareMachine: document.getElementById('btn-share-machine'),
+        
+        // Operations Status Bar Elements
+        opsSyncText: document.getElementById('ops-sync-text'),
+        opsSyncDot: document.getElementById('ops-sync-dot'),
+        opsLastSyncTime: document.getElementById('ops-last-sync-time'),
+        opsLastBackupTime: document.getElementById('ops-last-backup-time'),
+        btnOpsExportCsv: document.getElementById('btn-ops-export-csv'),
+        btnOpsBackupJson: document.getElementById('btn-ops-backup-json'),
+        btnOpsShare: document.getElementById('btn-ops-share'),
         shareModalOverlay: document.getElementById('share-modal-overlay'),
         btnCloseShareModal: document.getElementById('btn-close-share-modal'),
         btnCancelShareModal: document.getElementById('btn-cancel-share-modal'),
@@ -263,6 +272,49 @@ function initDOM() {
 
 let pendingEngineerAction = null;
 
+function updateOperationsStatusBar() {
+    if (!DOM.opsSyncText || !DOM.opsSyncDot) return;
+
+    const status = StorageService.getSyncStatus ? StorageService.getSyncStatus() : 'SYNCED';
+    if (status === 'SYNCED') {
+        DOM.opsSyncDot.style.background = 'var(--color-safe)';
+        DOM.opsSyncDot.style.boxShadow = '0 0 5px var(--color-safe)';
+        DOM.opsSyncText.textContent = 'Cloud Synced';
+    } else if (status === 'SYNCING') {
+        DOM.opsSyncDot.style.background = 'var(--color-warning)';
+        DOM.opsSyncDot.style.boxShadow = '0 0 5px var(--color-warning)';
+        DOM.opsSyncText.textContent = 'Syncing...';
+    } else if (status === 'OFFLINE') {
+        DOM.opsSyncDot.style.background = 'var(--color-text-muted)';
+        DOM.opsSyncDot.style.boxShadow = 'none';
+        DOM.opsSyncText.textContent = 'Local (Offline)';
+    } else {
+        DOM.opsSyncDot.style.background = 'var(--color-alarm)';
+        DOM.opsSyncDot.style.boxShadow = '0 0 5px var(--color-alarm)';
+        DOM.opsSyncText.textContent = 'Sync Notice';
+    }
+
+    const lastSync = StorageService.getLastSyncTime ? StorageService.getLastSyncTime() : null;
+    if (DOM.opsLastSyncTime) {
+        if (lastSync) {
+            const d = new Date(lastSync);
+            DOM.opsLastSyncTime.textContent = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        } else {
+            DOM.opsLastSyncTime.textContent = 'Just now';
+        }
+    }
+
+    const lastBackup = StorageService.getLastBackupTime ? StorageService.getLastBackupTime() : null;
+    if (DOM.opsLastBackupTime) {
+        if (lastBackup) {
+            const d = new Date(lastBackup);
+            DOM.opsLastBackupTime.textContent = d.toLocaleDateString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+        } else {
+            DOM.opsLastBackupTime.textContent = 'Ready';
+        }
+    }
+}
+
 function updateModeBadgeUI() {
     const isEng = AppState.settings.accessMode === 'ENGINEER';
     if (DOM.btnToggleMode) {
@@ -333,6 +385,7 @@ async function initApp() {
 
     UI.applyTheme(AppState.settings.theme);
     updateModeBadgeUI();
+    updateOperationsStatusBar();
 
     if (DOM.todayDate) DOM.todayDate.value = AppState.simulatedDate;
 
@@ -358,6 +411,7 @@ async function initApp() {
     // Smooth real-time 1-second refresh
     setInterval(() => {
         const evalTime = getEvalTime();
+        updateOperationsStatusBar();
         if (DOM.viewFleet && !DOM.viewFleet.classList.contains('hidden')) {
             DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, evalTime, handleMachineSelect, handleEditMachine, handleDeleteMachine, true);
         } else if (DOM.viewSingle && !DOM.viewSingle.classList.contains('hidden') && AppState.currentMachineId) {
@@ -758,12 +812,45 @@ function updateFilterActiveBadge() {
     }
 }
 
+function inspectLaserHead(mId, laserId) {
+    // 1. Switch to 'lasers' tab in the machine workspace modal
+    const tabBtns = document.querySelectorAll('.mach-tab-btn');
+    const tabPanes = document.querySelectorAll('.mach-tab-pane');
+    tabBtns.forEach(btn => {
+        if (btn.getAttribute('data-tab') === 'lasers') {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    tabPanes.forEach(pane => {
+        if (pane.id === 'tab-lasers') {
+            pane.classList.add('active');
+        } else {
+            pane.classList.remove('active');
+        }
+    });
+
+    // 2. Scroll into view and highlight the specific laser head card in the lasers tab
+    setTimeout(() => {
+        const laserCard = document.querySelector(`.laser-head-card [data-laser-id="${laserId}"]`)?.closest('.laser-head-card') ||
+                          document.querySelector(`.laser-head-card:has([data-laser-id="${laserId}"])`);
+        if (laserCard) {
+            laserCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            laserCard.classList.add('laser-highlight-pulse');
+            setTimeout(() => laserCard.classList.remove('laser-highlight-pulse'), 2000);
+        }
+    }, 60);
+}
+window.inspectLaserHead = inspectLaserHead;
+
 function getMachineCallbacks() {
     return {
         onRecalibrateLaser: (mId, laserId) => openRecalibrateModalForLaser(mId, laserId),
         onEditLaser: (mId, laserId) => openEditLaserModal(mId, laserId),
         onDeleteLaser: (mId, laserId) => handleDeleteLaserHead(mId, laserId),
-        onReplaceLaser: (mId, laserId) => openReplaceLaserModal(mId, laserId)
+        onReplaceLaser: (mId, laserId) => openReplaceLaserModal(mId, laserId),
+        onInspectLaser: (mId, laserId) => inspectLaserHead(mId, laserId)
     };
 }
 window.getMachineCallbacks = getMachineCallbacks;
@@ -2072,6 +2159,68 @@ function setupEventListeners() {
                 MachineController.renderSingleDashboard(machine, DOM, getEvalTime(), false, getMachineCallbacks());
             }
         });
+    });
+
+    // Operations Status Bar Actions
+    if (DOM.btnOpsExportCsv) {
+        DOM.btnOpsExportCsv.addEventListener('click', () => {
+            if (DOM.btnExportCsv) {
+                DOM.btnExportCsv.click();
+            } else {
+                const evalTime = getEvalTime();
+                const reportContent = StorageService.generateCsvReport(AppState.machines, evalTime);
+                const blob = new Blob([reportContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `LMS_Fleet_Audit_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                UI.showToast('Fleet CSV Audit Report Exported ✓', 'success');
+            }
+        });
+    }
+
+    if (DOM.btnOpsBackupJson) {
+        DOM.btnOpsBackupJson.addEventListener('click', () => {
+            if (DOM.btnExportJson) {
+                DOM.btnExportJson.click();
+            } else {
+                try {
+                    const backupData = StorageService.exportBackup();
+                    const jsonString = JSON.stringify(backupData, null, 2);
+                    const blob = new Blob([jsonString], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const filename = `LMS_Fleet_Backup_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                    UI.showToast('Full Database JSON Backup Exported ✓', 'success');
+                } catch (err) {
+                    UI.showToast('Failed to export backup', 'error');
+                }
+            }
+        });
+    }
+
+    if (DOM.btnOpsShare) {
+        DOM.btnOpsShare.addEventListener('click', () => {
+            if (typeof openShareModal === 'function') {
+                openShareModal('fleet');
+            } else if (DOM.btnShareFleet) {
+                DOM.btnShareFleet.click();
+            }
+        });
+    }
+
+    window.addEventListener('lms-sync-status-changed', () => {
+        updateOperationsStatusBar();
     });
 
     // Keyboard Shortcuts

@@ -157,7 +157,10 @@ export const MachineController = {
 
         if (DOM.progressBar) ChartRenderer.updateProgressBar(DOM.progressBar, crit.lifeRemainingPercent);
 
-        // Render Laser Heads Grid
+        // Render Laser Head Summary directly in Overview tab (Sprint 4)
+        this.renderOverviewLaserSummary(machine, metrics, evalTime, callbacks);
+
+        // Render Laser Heads Grid (in Lasers tab)
         this.renderLaserHeadsGrid(machine, metrics, evalTime, callbacks);
 
         // Render Permanent Replacement History Timeline
@@ -179,6 +182,129 @@ export const MachineController = {
         if (!silent) {
             this.updateLegendsAndScales(machine, DOM);
         }
+    },
+
+    /**
+     * Render Laser Head Summary directly inside Overview tab (Sprint 4 Addition).
+     * Displays Laser Head 1 & Laser Head 2 side-by-side with high-contrast telemetry:
+     * • Head ID (Name, Gen, Serial)
+     * • Health Status (Nominal, Warning, Alarm, Baseline Required)
+     * • Current Runtime
+     * • Remaining Life (Hours + countdown)
+     * • Life Capacity Bar
+     * • Primary Action (Inspect)
+     */
+    renderOverviewLaserSummary(machine, machineMetrics, evalTime, callbacks = {}) {
+        const container = document.getElementById('overview-laser-summary-grid');
+        if (!container) return;
+
+        container.innerHTML = '';
+        const laserList = machineMetrics.laserMetricsList || [];
+
+        laserList.forEach((lm) => {
+            let badgeClass = 'color-safe', dotColor = 'var(--green)';
+            if (lm.status === 'WARNING') { badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; }
+            if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
+            if (lm.status === 'BASELINE_REQUIRED') { badgeClass = 'color-baseline'; dotColor = '#3b82f6'; }
+
+            const currentHrsText = lm.currentHour !== null && lm.currentHour !== '—' ? `${lm.currentHour} hrs` : '—';
+            let remainText = '—';
+            if (lm.remainingTotal !== null && lm.remainingTotal !== '—') {
+                const formatHrs = Math.abs(lm.remainingTotal);
+                remainText = lm.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
+            }
+
+            let countdownText = '—';
+            if (lm.remainingDaysInfo && lm.remainingDaysInfo.daysVal !== null && !isNaN(lm.remainingDaysInfo.daysVal)) {
+                const daysVal = Math.abs(lm.remainingDaysInfo.daysVal);
+                countdownText = lm.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d remaining`;
+            }
+
+            const genNumber = lm.generation || (lm.replacementHistory ? lm.replacementHistory.length + 1 : (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1));
+
+            const card = document.createElement('div');
+            card.className = 'overview-laser-card glass-panel';
+            card.id = `overview-laser-${lm.id}`;
+            card.setAttribute('data-laser-id', lm.id);
+            card.setAttribute('tabindex', '0');
+            card.setAttribute('role', 'button');
+            card.setAttribute('aria-label', `Inspect ${lm.name}`);
+
+            card.innerHTML = `
+                <div class="olc-header">
+                    <div class="olc-identity">
+                        <div class="olc-title-row">
+                            <span class="olc-title">${lm.name}</span>
+                            <span class="badge badge-info" style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px;">Gen ${genNumber}</span>
+                        </div>
+                        <span class="olc-serial">SN: ${lm.serialNo || 'N/A'}</span>
+                    </div>
+                    <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10.5px; padding:2px 8px;">
+                        <div class="mc-led" style="width:7px; height:7px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
+                        ${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE' : lm.status}
+                    </div>
+                </div>
+
+                <div class="olc-telemetry-grid">
+                    <div class="olc-metric-box">
+                        <span class="olc-label">Current Runtime</span>
+                        <span class="olc-value">${currentHrsText}</span>
+                    </div>
+                    <div class="olc-metric-box">
+                        <span class="olc-label">Remaining Life</span>
+                        <span class="olc-value ${badgeClass}">${remainText}</span>
+                        <span class="olc-sub ${lm.remainingTotal < 0 ? 'color-alarm' : ''}">${countdownText}</span>
+                    </div>
+                </div>
+
+                <div class="olc-capacity-box">
+                    <div class="olc-capacity-meta">
+                        <span class="olc-cap-label">Life Capacity</span>
+                        <span class="olc-cap-val" style="color:${dotColor}">${lm.baselineRequired ? '—' : (lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining)}</span>
+                    </div>
+                    <div class="mini-health-track" style="width:100%; height:8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
+                        <div class="mini-health-fill" style="width:${(lm.baselineRequired || lm.isContingencyActive) ? 0 : (lm.lifeRemainingPercent || 0)}%; background:${dotColor}; height: 100%; border-radius: 4px; transition: width 0.3s ease;"></div>
+                    </div>
+                </div>
+
+                <div class="olc-footer">
+                    <button class="btn btn-secondary btn-sm btn-inspect-laser" data-laser-id="${lm.id}" title="Inspect ${lm.name} workspace">
+                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                        Inspect
+                    </button>
+                </div>
+            `;
+
+            const triggerInspect = (e) => {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                if (typeof callbacks.onInspectLaser === 'function') {
+                    callbacks.onInspectLaser(machine.id, lm.id);
+                } else if (typeof window.inspectLaserHead === 'function') {
+                    window.inspectLaserHead(machine.id, lm.id);
+                }
+            };
+
+            card.onclick = triggerInspect;
+            card.onkeydown = (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    triggerInspect(e);
+                }
+            };
+
+            const inspectBtn = card.querySelector('.btn-inspect-laser');
+            if (inspectBtn) {
+                inspectBtn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    triggerInspect(e);
+                };
+            }
+
+            container.appendChild(card);
+        });
     },
 
     /**

@@ -118,16 +118,21 @@ export default {
                 return new Response(JSON.stringify({ success: true }), { headers: corsHeaders });
             }
 
-            // POST /api/sync/upload-local (Initial Migration)
-            if (path === '/api/sync/upload-local' && method === 'POST') {
+            // POST /api/sync/upload-local & /api/sync/import (Initial Migration or Authoritative Import)
+            if ((path === '/api/sync/upload-local' || path === '/api/sync/import') && method === 'POST') {
                 const payload = await request.json();
                 const machines = payload.machines || [];
                 const settings = payload.settings || {};
+                const overwrite = payload.overwrite === true || path === '/api/sync/import';
 
                 // Check if D1 already has machines
                 const countRow = await env.DB.prepare('SELECT COUNT(*) as count FROM machines').first();
-                if (countRow && countRow.count > 0) {
+                if (countRow && countRow.count > 0 && !overwrite) {
                     return new Response(JSON.stringify({ success: false, message: 'D1 database is not empty. Authoritative cloud data retained.' }), { status: 409, headers: corsHeaders });
+                }
+
+                if (overwrite) {
+                    await env.DB.prepare('DELETE FROM machines').run();
                 }
 
                 for (const m of machines) {
