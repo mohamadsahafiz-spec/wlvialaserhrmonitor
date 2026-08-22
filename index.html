@@ -22,8 +22,42 @@
     <link rel="stylesheet" href="css/cards.css">
     <link rel="stylesheet" href="css/animations.css">
     <link rel="stylesheet" href="css/responsive.css">
+
+    <!-- Immediate Theme Initialization (Prevents theme flash) -->
+    <script>
+        try {
+            const rawSettings = localStorage.getItem('wafer_driller_settings_v5');
+            if (rawSettings) {
+                const parsed = JSON.parse(rawSettings);
+                if (parsed && parsed.theme) {
+                    document.documentElement.setAttribute('data-theme', parsed.theme);
+                }
+            }
+        } catch (e) {}
+    </script>
 </head>
 <body>
+
+    <!-- =====================================================
+         ENTERPRISE APPLICATION STARTUP INITIALIZATION LOADER
+         Guarantees no flash of uncalculated zero metrics
+    ===================================================== -->
+    <div id="app-startup-loader" class="app-startup-loader" aria-live="polite" aria-label="Initializing Laser Management System">
+        <div class="startup-loader-content">
+            <div class="startup-logo-box">
+                <svg class="icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><line x1="3" y1="12" x2="8" y2="12"></line><line x1="16" y1="12" x2="21" y2="12"></line><line x1="12" y1="3" x2="12" y2="8"></line><line x1="12" y1="16" x2="12" y2="21"></line></svg>
+            </div>
+            <div class="startup-loader-title">LASER MANAGEMENT SYSTEM</div>
+            <div class="startup-loader-sub">Semiconductor Telemetry Engine</div>
+            <div class="startup-progress-track">
+                <div class="startup-progress-bar"></div>
+            </div>
+            <div class="startup-loader-status">
+                <span class="scada-live-pulse"></span>
+                <span>INITIALIZING TELEMETRY STREAM...</span>
+            </div>
+        </div>
+    </div>
 
     <!-- =====================================================
          ZONE A: APPLICATION IDENTITY & COMMAND BAR
@@ -98,7 +132,7 @@
                                 <span class="ts-label">HEALTHY</span>
                             </div>
                             <div class="ts-body">
-                                <span id="stat-safe-count" class="ts-value color-safe">0</span>
+                                <span id="stat-safe-count" class="ts-value color-safe"></span>
                                 <span class="ts-sub">Nominal Units</span>
                             </div>
                         </div>
@@ -110,7 +144,7 @@
                                 <span class="ts-label">WARNING</span>
                             </div>
                             <div class="ts-body">
-                                <span id="stat-warn-count" class="ts-value color-warning">0</span>
+                                <span id="stat-warn-count" class="ts-value color-warning"></span>
                                 <span class="ts-sub">≥80% Life Limit</span>
                             </div>
                         </div>
@@ -122,7 +156,7 @@
                                 <span class="ts-label">ALARM</span>
                             </div>
                             <div class="ts-body">
-                                <span id="stat-alarm-count" class="ts-value color-alarm">0</span>
+                                <span id="stat-alarm-count" class="ts-value color-alarm"></span>
                                 <span class="ts-sub">Action Required</span>
                             </div>
                         </div>
@@ -134,7 +168,7 @@
                                 <span class="ts-label">FLEET HEALTH</span>
                             </div>
                             <div class="ts-body">
-                                <span id="stat-avg-health" class="ts-value color-primary">--%</span>
+                                <span id="stat-avg-health" class="ts-value color-primary"></span>
                                 <span class="ts-sub">Avg Margin Capacity</span>
                             </div>
                         </div>

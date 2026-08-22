@@ -386,24 +386,34 @@ function populateSettingsForm() {
     }
 }
 
+function dismissStartupLoader() {
+    const loader = document.getElementById('app-startup-loader');
+    if (loader && !loader.classList.contains('fade-out')) {
+        loader.classList.add('fade-out');
+        setTimeout(() => {
+            if (loader.parentNode) {
+                loader.style.display = 'none';
+            }
+        }, 260);
+    }
+}
+
 async function initApp() {
     initDOM();
-    AppState.machines = await StorageService.loadMachinesAsync();
-    AppState.settings = await StorageService.loadSettingsAsync();
 
-    updateAppTitle();
-    populateSettingsForm();
-
-    StorageService.initBackgroundSync((updatedMachines) => {
-        AppState.machines = updatedMachines;
-        if (!window.location.pathname.includes('machine.html') && !window.location.pathname.includes('settings.html')) {
-            showFleetView();
+    // 1. Synchronously pre-load local state for instant availability
+    try {
+        const localMachines = StorageService.loadMachines();
+        const localSettings = StorageService.loadSettings();
+        if (Array.isArray(localMachines) && localMachines.length > 0) {
+            AppState.machines = localMachines;
         }
-    });
-
-    UI.applyTheme(AppState.settings.theme);
-    updateModeBadgeUI();
-    updateOperationsStatusBar();
+        if (localSettings && typeof localSettings === 'object' && Object.keys(localSettings).length > 0) {
+            AppState.settings = localSettings;
+        }
+    } catch (e) {
+        console.warn('[LMS Boot] Local pre-load note:', e);
+    }
 
     try {
         const savedSimDate = localStorage.getItem('lms_simulated_date');
@@ -414,7 +424,38 @@ async function initApp() {
 
     if (DOM.todayDate) DOM.todayDate.value = AppState.simulatedDate;
 
-    // Check page route or query parameter
+    updateAppTitle();
+    populateSettingsForm();
+    UI.applyTheme(AppState.settings.theme);
+    updateModeBadgeUI();
+    updateOperationsStatusBar();
+
+    // 2. Perform asynchronous cloud data synchronization
+    try {
+        const remoteMachines = await StorageService.loadMachinesAsync();
+        if (Array.isArray(remoteMachines) && remoteMachines.length > 0) {
+            AppState.machines = remoteMachines;
+        }
+        const remoteSettings = await StorageService.loadSettingsAsync();
+        if (remoteSettings && typeof remoteSettings === 'object') {
+            AppState.settings = remoteSettings;
+            UI.applyTheme(AppState.settings.theme);
+            updateModeBadgeUI();
+            updateAppTitle();
+            populateSettingsForm();
+        }
+    } catch (err) {
+        console.warn('[LMS Boot] Async load sync note:', err);
+    }
+
+    StorageService.initBackgroundSync((updatedMachines) => {
+        AppState.machines = updatedMachines;
+        if (!window.location.pathname.includes('machine.html') && !window.location.pathname.includes('settings.html')) {
+            showFleetView();
+        }
+    });
+
+    // 3. Render view directly with fully calculated engineering data
     const urlMachineId = getQueryParam('id');
     const path = window.location.pathname;
 
@@ -430,6 +471,9 @@ async function initApp() {
     } else {
         showFleetView();
     }
+
+    // 4. Dismiss the startup loader now that initial view has been rendered with verified data
+    dismissStartupLoader();
 
     setupEventListeners();
 

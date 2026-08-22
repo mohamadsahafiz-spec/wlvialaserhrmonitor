@@ -1162,3 +1162,285 @@ body::before {
     flex-shrink: 0;
 }
 
+/* =====================================================
+   5. ENTERPRISE MODAL DIALOG ARCHITECTURE & OVERLAYS
+   Consistent Glass Panel Modals, Typography, Form Layouts & Backdrop
+   ===================================================== */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(8, 10, 14, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active,
+.modal-overlay.open {
+    display: flex !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+
+.modal-content {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-base);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--elevation-4);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    transform: scale(0.97) translateY(8px);
+    transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .modal-content,
+.modal-overlay.open .modal-content {
+    transform: scale(1) translateY(0);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-surface);
+    flex-shrink: 0;
+}
+
+.modal-header h3 {
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-extrabold);
+    color: var(--color-text-primary);
+    margin: 0;
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+}
+
+.modal-close {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--color-text-muted);
+    width: 28px;
+    height: 28px;
+    border-radius: var(--radius-xs);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: var(--transition-fast);
+    padding: 0;
+}
+
+.modal-close:hover {
+    background: var(--color-alarm-subtle);
+    color: var(--color-alarm);
+    border-color: var(--color-alarm-border);
+}
+
+.modal-body {
+    padding: var(--space-5);
+    overflow-y: auto;
+    flex: 1;
+    color: var(--color-text-primary);
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-5) var(--space-4);
+    border-top: 1px solid var(--color-border-subtle);
+    background: var(--color-bg-surface);
+    flex-shrink: 0;
+}
+
+/* Form layouts inside modals & pages */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group label {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-extrabold);
+    text-transform: uppercase;
+    letter-spacing: var(--tracking-wide);
+    color: var(--color-text-secondary);
+}
+
+.form-group .input-control,
+.form-group select,
+.form-group input,
+.form-group textarea {
+    width: 100%;
+}
+
+/* Light Theme overrides for modal components */
+[data-theme="light"] .modal-overlay {
+    background: rgba(15, 23, 42, 0.65);
+}
+
+[data-theme="light"] .modal-content {
+    background: var(--color-bg-surface);
+    border: 1px solid var(--color-border-base);
+    box-shadow: 0 20px 48px rgba(15, 23, 42, 0.16);
+}
+
+[data-theme="light"] .modal-header,
+[data-theme="light"] .modal-footer {
+    background: var(--color-bg-surface);
+    border-color: var(--color-border-subtle);
+}
+
+[data-theme="light"] .modal-close {
+    color: var(--color-text-secondary);
+}
+
+[data-theme="light"] .modal-close:hover {
+    background: rgba(220, 38, 38, 0.1);
+    color: #dc2626;
+    border-color: rgba(220, 38, 38, 0.25);
+}
+
+/* =====================================================
+   6. ENTERPRISE STARTUP INITIALIZATION LOADER
+   Prevents intermediate KPI placeholder flash during boot
+   ===================================================== */
+.app-startup-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--color-bg-base);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-theme="light"] .app-startup-loader {
+    background: #f8fafc;
+}
+
+.app-startup-loader.fade-out {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+.startup-loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: var(--space-6);
+    max-width: 360px;
+    width: 90%;
+}
+
+.startup-logo-box {
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, rgba(6, 182, 212, 0.2), rgba(59, 130, 246, 0.1));
+    border: 1px solid rgba(6, 182, 212, 0.4);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-primary);
+    margin-bottom: var(--space-4);
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+    animation: startupPulse 2s infinite ease-in-out;
+}
+
+.startup-loader-title {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-md);
+    font-weight: var(--font-weight-extrabold);
+    letter-spacing: 0.1em;
+    color: var(--color-text-primary);
+    margin-bottom: 4px;
+}
+
+.startup-loader-sub {
+    font-size: var(--font-size-xs);
+    color: var(--color-text-muted);
+    letter-spacing: var(--tracking-wide);
+    text-transform: uppercase;
+    margin-bottom: var(--space-5);
+}
+
+.startup-progress-track {
+    width: 100%;
+    height: 3px;
+    background: var(--color-bg-surface-elevated);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: var(--space-4);
+    position: relative;
+}
+
+.startup-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 40%;
+    background: linear-gradient(90deg, var(--color-primary), #38bdf8);
+    border-radius: 3px;
+    animation: startupTrack 1.2s infinite ease-in-out;
+}
+
+.startup-loader-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--font-family-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    letter-spacing: 0.08em;
+}
+
+@keyframes startupTrack {
+    0% { left: -40%; width: 30%; }
+    50% { width: 50%; }
+    100% { left: 100%; width: 30%; }
+}
+
+@keyframes startupPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 15px rgba(6, 182, 212, 0.2); }
+    50% { transform: scale(1.04); box-shadow: 0 0 25px rgba(6, 182, 212, 0.4); }
+}
+
