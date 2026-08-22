@@ -591,7 +591,7 @@ export const DashboardController = {
                         </div>
                         <div class="mc-drawer-item">
                             <span class="mc-drawer-label">Serial Number</span>
-                            <span class="mc-drawer-val">${machine.serialNumber || ('SN-' + machine.id)}</span>
+                            <span class="mc-drawer-val">${machine.serialNo || machine.serialNumber || ('SN-' + machine.id)}</span>
                         </div>
                     </div>
                 </div>
@@ -600,7 +600,7 @@ export const DashboardController = {
                 <div class="mc-card-footer">
                     ${primaryActionBtnHtml}
                     <div class="mc-footer-right">
-                        <button class="mc-btn-disclosure" type="button" title="Toggle Secondary Telemetry Details">
+                        <button class="mc-btn-disclosure" type="button" title="Toggle Engineering Telemetry Details">
                             <span class="mc-disclosure-text">Details</span>
                             <svg class="icon mc-disclosure-chevron" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>
                         </button>
@@ -637,7 +637,7 @@ export const DashboardController = {
                     btnDisclosure.classList.toggle('is-active', isExpanded);
                     const txt = btnDisclosure.querySelector('.mc-disclosure-text');
                     if (txt) {
-                        txt.textContent = isExpanded ? 'Hide' : 'Details';
+                        txt.textContent = isExpanded ? 'Collapse' : 'Details';
                     }
                 };
             }

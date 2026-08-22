@@ -444,19 +444,19 @@
    Progressive Disclosure • Hero Margin Authority • Instant 3-Sec Triage
    ===================================================== */
 .machine-card {
-    padding: 12px 14px;
+    padding: 10px 12px;
     cursor: pointer;
     transition: var(--transition-fast);
     position: relative;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    gap: 10px;
+    gap: 8px;
     border-radius: var(--radius-xs);
     background: var(--color-bg-surface);
     border: 1px solid var(--color-border-base);
     box-shadow: var(--elevation-1);
-    min-height: 220px;
+    min-height: 200px;
 }
 
 /* Precision Corner Fiducial (Top-Right Registration Bracket) */
@@ -509,17 +509,17 @@
 }
 
 .machine-card.incident-card .mc-hero-margin-value {
-    font-size: 28px;
+    font-size: 26px;
     color: var(--color-alarm);
 }
 
 /* Monitored Card (Warning/Healthy) - Compact, restrained */
 .machine-card.monitored-card {
-    min-height: 220px;
+    min-height: 200px;
 }
 
 .machine-card.monitored-card .mc-hero-margin-value {
-    font-size: 26px;
+    font-size: 24px;
 }
 
 /* -----------------------------------------------------
@@ -2036,6 +2036,137 @@
 .workspace-nav-card:hover .jump-arrow {
     transform: translateX(3px);
     color: var(--primary);
+}
+
+/* =====================================================
+   SPRINT 7: OVERVIEW SUMMARY CARDS (Calibration, Replacement, Audit)
+   ===================================================== */
+.overview-preview-section {
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.overview-summary-card {
+    padding: 14px 16px;
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    box-shadow: var(--glass-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: var(--transition-fast);
+}
+
+.overview-summary-card:hover {
+    border-color: var(--glass-border-highlight);
+    box-shadow: var(--elevation-hover);
+}
+
+.osc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.osc-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.osc-title-wrap .icon {
+    width: 14px;
+    height: 14px;
+    stroke: var(--primary);
+    stroke-width: 2;
+    fill: none;
+    flex-shrink: 0;
+}
+
+.osc-title {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    font-weight: var(--font-weight-black);
+    letter-spacing: var(--tracking-widest);
+    text-transform: uppercase;
+    color: var(--text);
+    margin: 0;
+}
+
+.osc-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.osc-telemetry-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 8px;
+}
+
+.osc-metric-box {
+    display: flex;
+    flex-direction: column;
+    padding: 8px 10px;
+    background: var(--input-bg);
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--glass-border);
+}
+
+.osc-label {
+    font-family: var(--font-mono);
+    font-size: 8.5px;
+    text-transform: uppercase;
+    font-weight: var(--font-weight-bold);
+    color: var(--muted);
+    letter-spacing: 0.4px;
+}
+
+.osc-value {
+    font-family: var(--font-mono);
+    font-size: 12.5px;
+    font-weight: var(--font-weight-black);
+    color: var(--text);
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums;
+    line-height: 1.3;
+}
+
+.osc-sub {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    font-weight: var(--font-weight-semibold);
+    color: var(--muted);
+    margin-top: 2px;
+    line-height: 1.25;
+}
+
+.osc-alert-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border-radius: var(--radius-xs);
+    font-size: 11px;
+    line-height: 1.35;
+    background: var(--input-bg);
+    border: 1px solid var(--glass-border);
+}
+
+.osc-alert-banner .icon {
+    width: 13px;
+    height: 13px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+    flex-shrink: 0;
+    margin-top: 1px;
 }
 
 /* Flash / Highlight pulse when jumping to a specific laser card */

@@ -157,7 +157,7 @@ export const MachineController = {
 
         if (DOM.progressBar) ChartRenderer.updateProgressBar(DOM.progressBar, crit.lifeRemainingPercent);
 
-        // Render Laser Head Summary directly in Overview tab (Sprint 4)
+        // Render Compact Laser Head Executive Summary in Overview tab
         this.renderOverviewLaserSummary(machine, metrics, evalTime, callbacks);
 
         // Render Laser Heads Grid (in Lasers tab)
@@ -185,14 +185,9 @@ export const MachineController = {
     },
 
     /**
-     * Render Laser Head Summary directly inside Overview tab (Sprint 4 Addition).
-     * Displays Laser Head 1 & Laser Head 2 side-by-side with high-contrast telemetry:
-     * • Head ID (Name, Gen, Serial)
-     * • Health Status (Nominal, Warning, Alarm, Baseline Required)
-     * • Current Runtime
-     * • Remaining Life (Hours + countdown)
-     * • Life Capacity Bar
-     * • Primary Action (Inspect)
+     * Render Compact Laser Heads Summary for Executive Overview.
+     * Displays compact rows: Gen X status badge (SAFE/WARNING/ALARM/BASELINE)
+     * with click handler to manage laser heads in the dedicated workspace.
      */
     renderOverviewLaserSummary(machine, machineMetrics, evalTime, callbacks = {}) {
         const container = document.getElementById('overview-laser-summary-grid');
@@ -207,71 +202,24 @@ export const MachineController = {
             if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
             if (lm.status === 'BASELINE_REQUIRED') { badgeClass = 'color-baseline'; dotColor = '#3b82f6'; }
 
-            const currentHrsText = lm.currentHour !== null && lm.currentHour !== '—' ? `${lm.currentHour} hrs` : '—';
-            let remainText = '—';
-            if (lm.remainingTotal !== null && lm.remainingTotal !== '—') {
-                const formatHrs = Math.abs(lm.remainingTotal);
-                remainText = lm.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
-            }
-
-            let countdownText = '—';
-            if (lm.remainingDaysInfo && lm.remainingDaysInfo.daysVal !== null && !isNaN(lm.remainingDaysInfo.daysVal)) {
-                const daysVal = Math.abs(lm.remainingDaysInfo.daysVal);
-                countdownText = lm.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d remaining`;
-            }
-
             const genNumber = lm.generation || (lm.replacementHistory ? lm.replacementHistory.length + 1 : (lm.lifecycleHistory ? lm.lifecycleHistory.length + 1 : 1));
 
-            const card = document.createElement('div');
-            card.className = 'overview-laser-card glass-panel';
-            card.id = `overview-laser-${lm.id}`;
-            card.setAttribute('data-laser-id', lm.id);
-            card.setAttribute('tabindex', '0');
-            card.setAttribute('role', 'button');
-            card.setAttribute('aria-label', `Inspect ${lm.name}`);
+            const row = document.createElement('div');
+            row.className = 'overview-laser-compact-row';
+            row.id = `overview-laser-row-${lm.id}`;
+            row.setAttribute('data-laser-id', lm.id);
+            row.setAttribute('tabindex', '0');
+            row.setAttribute('role', 'button');
+            row.setAttribute('aria-label', `${lm.name} Gen ${genNumber}: ${lm.status}`);
 
-            card.innerHTML = `
-                <div class="olc-header">
-                    <div class="olc-identity">
-                        <div class="olc-title-row">
-                            <span class="olc-title">${lm.name}</span>
-                            <span class="badge badge-info" style="font-size:9px; font-weight:700; padding:1px 5px; border-radius:4px;">Gen ${genNumber}</span>
-                        </div>
-                        <span class="olc-serial">SN: ${lm.serialNo || 'N/A'}</span>
-                    </div>
-                    <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10.5px; padding:2px 8px;">
-                        <div class="mc-led" style="width:7px; height:7px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
-                        ${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE' : lm.status}
-                    </div>
+            row.innerHTML = `
+                <div class="olcr-info" style="display:flex; align-items:center; gap:10px;">
+                    <span class="olcr-name" style="font-weight:700; font-size:13px; color:var(--text);">${lm.name}</span>
+                    <span class="olcr-gen badge badge-info" style="font-size:9.5px; font-weight:700; padding:1px 6px; border-radius:4px;">Gen ${genNumber}</span>
                 </div>
-
-                <div class="olc-telemetry-grid">
-                    <div class="olc-metric-box">
-                        <span class="olc-label">Current Runtime</span>
-                        <span class="olc-value">${currentHrsText}</span>
-                    </div>
-                    <div class="olc-metric-box">
-                        <span class="olc-label">Remaining Life</span>
-                        <span class="olc-value ${badgeClass}">${remainText}</span>
-                        <span class="olc-sub ${lm.remainingTotal < 0 ? 'color-alarm' : ''}">${countdownText}</span>
-                    </div>
-                </div>
-
-                <div class="olc-capacity-box">
-                    <div class="olc-capacity-meta">
-                        <span class="olc-cap-label">Life Capacity</span>
-                        <span class="olc-cap-val" style="color:${dotColor}">${lm.baselineRequired ? '—' : (lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining)}</span>
-                    </div>
-                    <div class="mini-health-track" style="width:100%; height:8px; background: rgba(255,255,255,0.06); border-radius: 4px; overflow: hidden;">
-                        <div class="mini-health-fill" style="width:${(lm.baselineRequired || lm.isContingencyActive) ? 0 : (lm.lifeRemainingPercent || 0)}%; background:${dotColor}; height: 100%; border-radius: 4px; transition: width 0.3s ease;"></div>
-                    </div>
-                </div>
-
-                <div class="olc-footer">
-                    <button class="btn btn-secondary btn-sm btn-inspect-laser" data-laser-id="${lm.id}" title="Inspect ${lm.name} workspace">
-                        <svg class="icon" viewBox="0 0 24 24" style="width:13px;height:13px;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                        Inspect
-                    </button>
+                <div class="mc-status-badge ${badgeClass}" style="border-color:${dotColor}40; font-size:10.5px; padding:2px 8px; display:inline-flex; align-items:center; gap:6px;">
+                    <div class="mc-led" style="width:6.5px; height:6.5px; background:${dotColor}; box-shadow: 0 0 6px ${dotColor}"></div>
+                    <span>${lm.status === 'BASELINE_REQUIRED' ? 'BASELINE REQ' : lm.status}</span>
                 </div>
             `;
 
@@ -287,24 +235,313 @@ export const MachineController = {
                 }
             };
 
-            card.onclick = triggerInspect;
-            card.onkeydown = (e) => {
+            row.onclick = triggerInspect;
+            row.onkeydown = (e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
                     triggerInspect(e);
                 }
             };
 
-            const inspectBtn = card.querySelector('.btn-inspect-laser');
-            if (inspectBtn) {
-                inspectBtn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    triggerInspect(e);
-                };
+            container.appendChild(row);
+        });
+    },
+
+    /**
+     * Render Calibration Summary Preview Card inside Overview tab (Sprint 7).
+     * Displays:
+     * • Last Calibration (Date & Service info)
+     * • Current Status (PASS / WARNING with drift deviation)
+     * • Next Due Date
+     */
+    renderOverviewCalibrationSummary(machine, machineMetrics, evalTime) {
+        let allHistory = [];
+        if (Array.isArray(machine.calibrationHistory)) {
+            allHistory = allHistory.concat(machine.calibrationHistory.map(h => ({ ...h, laserName: h.laserName || 'Laser Head 1' })));
+        }
+        if (Array.isArray(machine.lasers)) {
+            machine.lasers.forEach(l => {
+                if (Array.isArray(l.calibrationHistory)) {
+                    l.calibrationHistory.forEach(h => {
+                        if (!allHistory.some(existing => existing.date === h.date && existing.actualHour === h.actualHour)) {
+                            allHistory.push({ ...h, laserName: l.name || 'Laser Head' });
+                        }
+                    });
+                }
+            });
+        }
+
+        allHistory.sort((a, b) => {
+            const timeA = new Date(a.date || 0).getTime() || 0;
+            const timeB = new Date(b.date || 0).getTime() || 0;
+            return timeB - timeA;
+        });
+
+        const badgeEl = document.getElementById('ov-calib-status-badge');
+        const lastDateEl = document.getElementById('ov-calib-last-date');
+        const lastEngEl = document.getElementById('ov-calib-last-eng');
+        const statusValEl = document.getElementById('ov-calib-status-val');
+        const driftValEl = document.getElementById('ov-calib-drift-val');
+        const nextDueEl = document.getElementById('ov-calib-next-due');
+        const intervalEl = document.getElementById('ov-calib-interval');
+
+        if (!lastDateEl) return;
+
+        if (allHistory.length > 0) {
+            const latest = allHistory[0];
+            const diffNum = Number(latest.difference) || 0;
+            const diffStr = diffNum > 0 ? `+${diffNum} hrs deviation` : (diffNum < 0 ? `${diffNum} hrs deviation` : '0 hrs deviation');
+            
+            let statusText = 'PASS';
+            let statusClass = 'color-safe';
+            let badgeClass = 'color-safe';
+            let ledClass = 'bg-safe';
+            let ratingBadge = 'PASS • OPTIMAL';
+
+            if (Math.abs(diffNum) > 100) {
+                statusText = 'WARNING';
+                statusClass = 'color-alarm';
+                badgeClass = 'color-alarm';
+                ledClass = 'bg-alarm';
+                ratingBadge = 'WARNING • CRITICAL DRIFT';
+            } else if (Math.abs(diffNum) > 25) {
+                statusText = 'WARNING';
+                statusClass = 'color-warning';
+                badgeClass = 'color-warning';
+                ledClass = 'bg-warning';
+                ratingBadge = 'WARNING • MODERATE DRIFT';
             }
 
-            container.appendChild(card);
+            let dateDisplay = latest.date || 'N/A';
+            if (dateDisplay.includes('T')) {
+                dateDisplay = dateDisplay.split('T')[0];
+            }
+
+            // Calculate next due date (30 days from last calibration)
+            let nextDueStr = '—';
+            const calDateObj = new Date(latest.date);
+            if (!isNaN(calDateObj.getTime())) {
+                const nextDateObj = new Date(calDateObj.getTime() + (30 * 24 * 60 * 60 * 1000));
+                nextDueStr = nextDateObj.toISOString().split('T')[0];
+            }
+
+            if (badgeEl) {
+                badgeEl.className = `mc-status-badge ${badgeClass}`;
+                badgeEl.innerHTML = `<div class="mc-led ${ledClass}" style="width:6px; height:6px;"></div> <span>${ratingBadge}</span>`;
+            }
+            if (lastDateEl) lastDateEl.textContent = dateDisplay;
+            if (lastEngEl) lastEngEl.textContent = `${latest.laserName || 'Laser Unit'} • ${latest.engineer || 'Service Specialist'}`;
+            if (statusValEl) {
+                statusValEl.className = `osc-value ${statusClass}`;
+                statusValEl.textContent = statusText;
+            }
+            if (driftValEl) driftValEl.textContent = diffStr;
+            if (nextDueEl) nextDueEl.textContent = nextDueStr;
+            if (intervalEl) intervalEl.textContent = '30-Day Periodic Cycle';
+        } else {
+            // No calibration records yet (factory baseline state)
+            const baseDate = machine.baseTimestamp ? formatDate(machine.baseTimestamp) : 'Factory Baseline';
+            let nextDueStr = '—';
+            if (machine.baseTimestamp) {
+                const baseDateObj = new Date(machine.baseTimestamp);
+                if (!isNaN(baseDateObj.getTime())) {
+                    const nextDateObj = new Date(baseDateObj.getTime() + (30 * 24 * 60 * 60 * 1000));
+                    nextDueStr = nextDateObj.toISOString().split('T')[0];
+                }
+            }
+
+            if (badgeEl) {
+                badgeEl.className = 'mc-status-badge color-safe';
+                badgeEl.innerHTML = `<div class="mc-led bg-safe" style="width:6px; height:6px;"></div> <span>PASS • BASELINE</span>`;
+            }
+            if (lastDateEl) lastDateEl.textContent = baseDate;
+            if (lastEngEl) lastEngEl.textContent = 'Factory Baseline Capture';
+            if (statusValEl) {
+                statusValEl.className = 'osc-value color-safe';
+                statusValEl.textContent = 'PASS';
+            }
+            if (driftValEl) driftValEl.textContent = 'Initial Zero-Point Baseline';
+            if (nextDueEl) nextDueEl.textContent = nextDueStr;
+            if (intervalEl) intervalEl.textContent = '30-Day Periodic Cycle';
+        }
+    },
+
+    /**
+     * Render Replacement Summary Preview Card inside Overview tab (Sprint 7).
+     * Displays only the latest replacement:
+     * • Date
+     * • Reason
+     * • Runtime at replacement
+     */
+    renderOverviewReplacementSummary(machine, machineMetrics, evalTime) {
+        const allReplacements = [];
+        if (Array.isArray(machine.lasers)) {
+            machine.lasers.forEach(laser => {
+                const replList = Array.isArray(laser.replacementHistory) ? laser.replacementHistory : (Array.isArray(laser.lifecycleHistory) ? laser.lifecycleHistory : []);
+                replList.forEach(rec => {
+                    allReplacements.push({
+                        laserName: laser.name || 'Laser Head',
+                        laserSerial: laser.serialNo || machine.serialNo || 'N/A',
+                        generation: rec.generation || 1,
+                        nextGeneration: (rec.generation ? rec.generation + 1 : 2),
+                        date: rec.replacementDate || rec.date || rec.timestamp || rec.retiredDate || 'N/A',
+                        engineer: rec.engineer || 'Optics Specialist',
+                        previousRuntime: rec.previousRuntime !== undefined ? rec.previousRuntime : (rec.retiredHours !== undefined ? rec.retiredHours : '—'),
+                        reason: rec.reason || 'Lifecycle Limit Reached'
+                    });
+                });
+            });
+        }
+
+        allReplacements.sort((a, b) => {
+            const timeA = new Date(a.date || 0).getTime() || 0;
+            const timeB = new Date(b.date || 0).getTime() || 0;
+            return timeB - timeA;
         });
+
+        const badgeEl = document.getElementById('ov-repl-badge');
+        const dateEl = document.getElementById('ov-repl-date');
+        const targetEl = document.getElementById('ov-repl-target');
+        const reasonEl = document.getElementById('ov-repl-reason');
+        const engEl = document.getElementById('ov-repl-eng');
+        const runtimeEl = document.getElementById('ov-repl-runtime');
+        const genEl = document.getElementById('ov-repl-gen');
+
+        if (!dateEl) return;
+
+        if (allReplacements.length > 0) {
+            const latest = allReplacements[0];
+            let dateDisplay = latest.date;
+            if (dateDisplay.includes('T')) dateDisplay = dateDisplay.split('T')[0];
+
+            if (badgeEl) badgeEl.textContent = `Gen ${latest.nextGeneration} Active`;
+            if (dateEl) dateEl.textContent = dateDisplay;
+            if (targetEl) targetEl.textContent = `${latest.laserName} (SN: ${latest.laserSerial})`;
+            if (reasonEl) reasonEl.textContent = latest.reason;
+            if (engEl) engEl.textContent = `Logged by ${latest.engineer}`;
+            if (runtimeEl) runtimeEl.textContent = typeof latest.previousRuntime === 'number' ? `${latest.previousRuntime.toLocaleString()} hrs` : `${latest.previousRuntime} hrs`;
+            if (genEl) genEl.textContent = `Swapped: Gen ${latest.generation} → Gen ${latest.nextGeneration}`;
+        } else {
+            const baseDate = machine.baseTimestamp ? formatDate(machine.baseTimestamp) : 'Factory Baseline';
+            if (badgeEl) badgeEl.textContent = 'Original Gen 1 Unit';
+            if (dateEl) dateEl.textContent = baseDate;
+            if (targetEl) targetEl.textContent = 'Factory Baseline Initialized';
+            if (reasonEl) reasonEl.textContent = 'Original Factory Diode Unit';
+            if (engEl) engEl.textContent = 'No replacements logged to date';
+            if (runtimeEl) runtimeEl.textContent = '0 hrs (Initial Setup)';
+            if (genEl) genEl.textContent = 'Gen 1 Standard Lifecycle';
+        }
+    },
+
+    /**
+     * Render Audit Summary Preview Card inside Overview tab (Sprint 7).
+     * Displays:
+     * • Last Audit (Date & Engineer/Type)
+     * • Result (PASSED, WARNING, CRITICAL)
+     * • Critical Findings
+     * • Recommendation
+     */
+    renderOverviewAuditSummary(machine, machineMetrics, evalTime) {
+        const crit = machineMetrics.mostCriticalLaser || {};
+        const badgeEl = document.getElementById('ov-audit-badge');
+        const lastDateEl = document.getElementById('ov-audit-last-date');
+        const inspectorEl = document.getElementById('ov-audit-inspector');
+        const resultEl = document.getElementById('ov-audit-result');
+        const resultSubEl = document.getElementById('ov-audit-result-sub');
+        const findingsEl = document.getElementById('ov-audit-findings');
+        const findingsSubEl = document.getElementById('ov-audit-findings-sub');
+        const recEl = document.getElementById('ov-audit-recommendation');
+        const recSubEl = document.getElementById('ov-audit-rec-sub');
+
+        if (!lastDateEl) return;
+
+        // Last Audit info from maintenance or baseline
+        let lastAuditDate = 'N/A';
+        let inspectorName = 'Engineering Service Team';
+
+        if (Array.isArray(machine.maintenanceHistory) && machine.maintenanceHistory.length > 0) {
+            const latestMaint = machine.maintenanceHistory[0];
+            lastAuditDate = latestMaint.date || 'N/A';
+            inspectorName = `${latestMaint.engineer || 'Service Specialist'} • ${latestMaint.action || 'Preventive Maintenance'}`;
+        } else if (machine.baseTimestamp) {
+            lastAuditDate = formatDate(machine.baseTimestamp);
+            inspectorName = 'Factory Commissioning Audit';
+        } else {
+            lastAuditDate = 'System Commissioning';
+            inspectorName = 'Standard Engineering Audit';
+        }
+
+        // Result determination
+        let auditResult = 'PASSED';
+        let resultSub = 'Nominal Health Compliance';
+        let badgeClass = 'color-safe';
+        let ledClass = 'bg-safe';
+        let badgeText = 'PASSED';
+
+        if (machineMetrics.status === 'ALARM') {
+            auditResult = 'CRITICAL ADVISORY';
+            resultSub = 'Threshold Exceeded — Action Required';
+            badgeClass = 'color-alarm';
+            ledClass = 'bg-alarm';
+            badgeText = 'CRITICAL';
+        } else if (machineMetrics.status === 'WARNING') {
+            auditResult = 'WARNING • PM REQUIRED';
+            resultSub = 'Operating Life Limit Approaching';
+            badgeClass = 'color-warning';
+            ledClass = 'bg-warning';
+            badgeText = 'WARNING';
+        } else if (machineMetrics.status === 'BASELINE_REQUIRED') {
+            auditResult = 'BASELINE PENDING';
+            resultSub = 'Physical Hour Capture Needed';
+            badgeClass = 'color-baseline';
+            ledClass = 'bg-baseline';
+            badgeText = 'BASELINE';
+        }
+
+        // Critical Findings
+        let criticalFindings = 'Zero Critical Drift Detected';
+        let findingsSub = 'Diode degradation within nominal rate';
+
+        if (crit.isContingencyActive) {
+            criticalFindings = `Contingency Active: ${crit.hoursExceeded?.toLocaleString() || 0} hrs exceeded rated life`;
+            findingsSub = `Contingency Ceiling: ${crit.contingencyCeiling?.toLocaleString() || 28000} hrs`;
+        } else if (crit.status === 'WARNING') {
+            criticalFindings = `Recommended limit approaching: ${crit.remainingTotal} hrs remaining`;
+            findingsSub = `${crit.formattedLifeRemaining || '80%'} rated capacity remaining`;
+        } else if (crit.status === 'BASELINE_REQUIRED') {
+            criticalFindings = 'Initial physical meter baseline reading missing';
+            findingsSub = 'Automatic runtime tracking paused';
+        }
+
+        // Recommendation
+        let recommendation = 'Continue normal operation. Review during next preventive maintenance.';
+        let recSub = 'Advisory Directive';
+
+        if (crit.isContingencyActive) {
+            recommendation = 'Immediate laser replacement planning & risk management required.';
+            recSub = 'Critical Engineering Directive';
+        } else if (crit.status === 'WARNING') {
+            recommendation = 'Schedule preventive maintenance and replacement diode procurement.';
+            recSub = 'Preventive Maintenance Action';
+        } else if (crit.status === 'BASELINE_REQUIRED') {
+            recommendation = 'Record physical meter reading to start automatic tracking.';
+            recSub = 'Baseline Required Action';
+        }
+
+        if (badgeEl) {
+            badgeEl.className = `mc-status-badge ${badgeClass}`;
+            badgeEl.innerHTML = `<div class="mc-led ${ledClass}" style="width:6px; height:6px;"></div> <span>${badgeText}</span>`;
+        }
+        if (lastDateEl) lastDateEl.textContent = lastAuditDate;
+        if (inspectorEl) inspectorEl.textContent = inspectorName;
+        if (resultEl) {
+            resultEl.className = `osc-value ${badgeClass}`;
+            resultEl.textContent = auditResult;
+        }
+        if (resultSubEl) resultSubEl.textContent = resultSub;
+        if (findingsEl) findingsEl.textContent = criticalFindings;
+        if (findingsSubEl) findingsSubEl.textContent = findingsSub;
+        if (recEl) recEl.textContent = recommendation;
+        if (recSubEl) recSubEl.textContent = recSub;
     },
 
     /**

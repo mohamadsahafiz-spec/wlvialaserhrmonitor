@@ -2,12 +2,9 @@
   "systemTitle": "Laser Management System",
   "version": "1.0",
   "theme": "dark",
-  "systemStatus": "Active",
   "defaultRatedLife": 25000,
   "defaultWarningPercentage": 80,
-  "recalibrationIntervalDays": 30,
-  "accuracyThresholds": {
-    "highDays": 30,
-    "mediumDays": 90
-  }
+  "recalibrationInterval": 30,
+  "engineerPassword": "1234",
+  "accessMode": "ENGINEER"
 }

@@ -281,12 +281,17 @@ export const StorageService = {
                     const lBase = (typeof laser.baseLaserHour === 'number' && !isNaN(laser.baseLaserHour)) ? laser.baseLaserHour : null;
                     const lTs = (laser.baseTimestamp && !isNaN(new Date(laser.baseTimestamp).getTime())) ? laser.baseTimestamp : null;
 
+                    const replHist = Array.isArray(laser.replacementHistory)
+                        ? laser.replacementHistory
+                        : (Array.isArray(laser.lifecycleHistory) ? laser.lifecycleHistory : []);
+
                     return {
                         id: laser.id || `${id}-L${idx + 1}`,
                         name: laser.name || `Laser Head ${idx + 1}`,
                         serialNo: laser.serialNo || `${serialNo}-L${idx + 1}`,
-                        generation: Number(laser.generation) || (Array.isArray(laser.lifecycleHistory) ? laser.lifecycleHistory.length + 1 : 1),
-                        lifecycleHistory: Array.isArray(laser.lifecycleHistory) ? laser.lifecycleHistory : [],
+                        generation: Number(laser.generation) || (replHist.length + 1),
+                        replacementHistory: replHist,
+                        lifecycleHistory: replHist,
                         ratedLife: lRated,
                         warningLife: lWarn,
                         contingencyCeiling: lContingency,
@@ -294,7 +299,9 @@ export const StorageService = {
                         baseTimestamp: lTs,
                         runtimeState: (!lTs || lBase === null) ? 'BASELINE_REQUIRED' : (laser.runtimeState || 'NORMAL'),
                         lastRecalibrationDate: laser.lastRecalibrationDate || lTs,
-                        calibrationHistory: Array.isArray(laser.calibrationHistory) ? laser.calibrationHistory : []
+                        calibrationHistory: Array.isArray(laser.calibrationHistory) ? laser.calibrationHistory : [],
+                        installedDate: laser.installedDate || lTs,
+                        installedBy: laser.installedBy || 'Optics Specialist'
                     };
                 });
             }
@@ -308,6 +315,7 @@ export const StorageService = {
                 model,
                 department,
                 lasers,
+                calibrationHistory: Array.isArray(m.calibrationHistory) ? m.calibrationHistory : [],
                 maintenanceHistory: Array.isArray(m.maintenanceHistory) ? m.maintenanceHistory : [],
                 lastUpdated: m.lastUpdated || new Date().toISOString()
             };
@@ -493,6 +501,7 @@ export const StorageService = {
                 theme: "dark",
                 defaultRatedLife: 25000,
                 defaultWarningPercentage: 80,
+                recalibrationInterval: 30,
                 engineerPassword: "1234",
                 accessMode: "ENGINEER"
             };
@@ -507,6 +516,9 @@ export const StorageService = {
                 systemTitle: "Laser Management System",
                 version: "1.0",
                 theme: "dark",
+                defaultRatedLife: 25000,
+                defaultWarningPercentage: 80,
+                recalibrationInterval: 30,
                 engineerPassword: "1234",
                 accessMode: "ENGINEER"
             };
@@ -531,12 +543,27 @@ export const StorageService = {
         }
     },
 
+    async saveSettingsAsync(settings) {
+        this.saveSettings(settings);
+        if (CLOUD_SYNC_ENABLED) {
+            try {
+                await fetch('/api/settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settings)
+                });
+            } catch (err) {}
+        }
+    },
+
     exportBackup() {
         const machines = this.loadMachines();
         const settings = this.loadSettings();
+        const simDate = localStorage.getItem('lms_simulated_date') || new Date().toISOString().split('T')[0];
         const exportObj = {
             version: '1.0',
             exportedAt: new Date().toISOString(),
+            simulatedDate: simDate,
             machines: JSON.parse(JSON.stringify(machines)),
             settings: JSON.parse(JSON.stringify(settings))
         };
@@ -583,6 +610,11 @@ export const StorageService = {
             if (data.settings && typeof data.settings === 'object') {
                 settings = data.settings;
             }
+            if (data.simulatedDate) {
+                try {
+                    localStorage.setItem('lms_simulated_date', data.simulatedDate);
+                } catch (e) {}
+            }
         } else {
             throw new Error('Unsupported backup format');
         }
@@ -622,7 +654,8 @@ export const StorageService = {
 
         return {
             machines: normalizedMachines,
-            settings: this.loadSettings()
+            settings: this.loadSettings(),
+            simulatedDate: (data && data.simulatedDate) || null
         };
     },
 

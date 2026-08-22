@@ -194,14 +194,8 @@ function initDOM() {
         editMachRated: document.getElementById('edit-mach-rated'),
         editMachBaseHour: document.getElementById('edit-mach-base-hour'),
 
-        // Configuration & Delete Buttons
-        btnDeleteMachine: document.getElementById('btn-delete-machine'),
+        // Edit Machine Modal Actions
         btnDeleteEditMachine: document.getElementById('btn-delete-edit-machine'),
-        detMachName: document.getElementById('det-mach-name'),
-        detMachNo: document.getElementById('det-mach-no'),
-        detModel: document.getElementById('det-model'),
-        detSerialNo: document.getElementById('det-serial-no'),
-        detDept: document.getElementById('det-dept'),
 
         // Toolbar Filter Popover & Controls
         btnToggleFilters: document.getElementById('btn-toggle-filters'),
@@ -262,7 +256,16 @@ function initDOM() {
         cfgRatedLife: document.getElementById('cfg-rated-life'),
         cfgWarnPct: document.getElementById('cfg-warn-pct'),
         cfgRecalInterval: document.getElementById('cfg-recal-interval'),
-        cfgEngPassword: document.getElementById('cfg-eng-password'),
+        cfgEngStatus: document.getElementById('cfg-eng-status'),
+        btnOpenChangePassword: document.getElementById('btn-open-change-password'),
+        changePasswordOverlay: document.getElementById('change-password-modal-overlay'),
+        btnCloseChangePassword: document.getElementById('btn-close-change-password'),
+        btnCancelChangePassword: document.getElementById('btn-cancel-change-password'),
+        btnSubmitChangePassword: document.getElementById('btn-submit-change-password'),
+        pwdCurrent: document.getElementById('pwd-current'),
+        pwdNew: document.getElementById('pwd-new'),
+        pwdConfirm: document.getElementById('pwd-confirm'),
+        pwdErrorMsg: document.getElementById('pwd-error-msg'),
         btnSaveSettings: document.getElementById('btn-save-settings'),
         btnResetDefaults: document.getElementById('btn-reset-defaults'),
         btnExportJson: document.getElementById('btn-export-json'),
@@ -336,9 +339,19 @@ function requireEngineerMode(actionCallback) {
         if (typeof actionCallback === 'function') actionCallback();
     } else {
         pendingEngineerAction = actionCallback;
-        if (DOM.inputModePassword) DOM.inputModePassword.value = '';
+        if (DOM.inputModePassword) {
+            DOM.inputModePassword.value = '';
+            DOM.inputModePassword.type = 'password';
+        }
+        const modeToggleBtn = document.querySelector('.btn-pwd-toggle[data-target="input-mode-password"]');
+        if (modeToggleBtn) {
+            modeToggleBtn.classList.remove('active');
+            modeToggleBtn.setAttribute('title', 'Show password');
+            modeToggleBtn.innerHTML = `<svg class="icon eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+        }
         if (DOM.modePasswordError) DOM.modePasswordError.style.display = 'none';
         UI.showModal(DOM.modeModalOverlay);
+        if (DOM.inputModePassword) setTimeout(() => DOM.inputModePassword.focus(), 50);
     }
 }
 
@@ -365,7 +378,12 @@ function populateSettingsForm() {
     if (DOM.cfgRatedLife) DOM.cfgRatedLife.value = AppState.settings.defaultRatedLife || 25000;
     if (DOM.cfgWarnPct) DOM.cfgWarnPct.value = AppState.settings.defaultWarningPercentage || 80;
     if (DOM.cfgRecalInterval) DOM.cfgRecalInterval.value = AppState.settings.recalibrationInterval || 30;
-    if (DOM.cfgEngPassword) DOM.cfgEngPassword.value = AppState.settings.engineerPassword || "1234";
+    if (DOM.cfgEngStatus) {
+        DOM.cfgEngStatus.innerHTML = `
+            <span class="mc-led bg-safe" style="width:6px; height:6px;"></span>
+            Status: Configured
+        `;
+    }
 }
 
 async function initApp() {
@@ -386,6 +404,13 @@ async function initApp() {
     UI.applyTheme(AppState.settings.theme);
     updateModeBadgeUI();
     updateOperationsStatusBar();
+
+    try {
+        const savedSimDate = localStorage.getItem('lms_simulated_date');
+        if (savedSimDate) {
+            AppState.simulatedDate = savedSimDate;
+        }
+    } catch (e) {}
 
     if (DOM.todayDate) DOM.todayDate.value = AppState.simulatedDate;
 
@@ -1086,23 +1111,34 @@ function setupEventListeners() {
         });
     }
 
+    const submitModeAuth = () => {
+        const entered = DOM.inputModePassword ? DOM.inputModePassword.value : '';
+        const correct = AppState.settings.engineerPassword || '1234';
+        if (entered === correct) {
+            AppState.settings.accessMode = 'ENGINEER';
+            StorageService.saveSettings(AppState.settings);
+            updateModeBadgeUI();
+            UI.hideModal(DOM.modeModalOverlay);
+            UI.showToast('Engineer Mode Unlocked!', 'success');
+            if (pendingEngineerAction) {
+                const cb = pendingEngineerAction;
+                pendingEngineerAction = null;
+                cb();
+            }
+        } else {
+            if (DOM.modePasswordError) DOM.modePasswordError.style.display = 'block';
+        }
+    };
+
     if (DOM.btnSubmitModeAuth) {
-        DOM.btnSubmitModeAuth.addEventListener('click', () => {
-            const entered = DOM.inputModePassword ? DOM.inputModePassword.value : '';
-            const correct = AppState.settings.engineerPassword || '1234';
-            if (entered === correct) {
-                AppState.settings.accessMode = 'ENGINEER';
-                StorageService.saveSettings(AppState.settings);
-                updateModeBadgeUI();
-                UI.hideModal(DOM.modeModalOverlay);
-                UI.showToast('Engineer Mode Unlocked!', 'success');
-                if (pendingEngineerAction) {
-                    const cb = pendingEngineerAction;
-                    pendingEngineerAction = null;
-                    cb();
-                }
-            } else {
-                if (DOM.modePasswordError) DOM.modePasswordError.style.display = 'block';
+        DOM.btnSubmitModeAuth.addEventListener('click', submitModeAuth);
+    }
+
+    if (DOM.inputModePassword) {
+        DOM.inputModePassword.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitModeAuth();
             }
         });
     }
@@ -1137,9 +1173,16 @@ function setupEventListeners() {
 
     if (DOM.todayDate) DOM.todayDate.addEventListener('change', () => {
         AppState.simulatedDate = DOM.todayDate.value;
+        try {
+            localStorage.setItem('lms_simulated_date', AppState.simulatedDate);
+        } catch (e) {}
+        const evalTime = getEvalTime();
+        if (DOM.viewFleet && !DOM.viewFleet.classList.contains('hidden')) {
+            DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, evalTime, handleMachineSelect, handleEditMachine, handleDeleteMachine);
+        }
         const machine = AppState.machines.find(m => m.id === AppState.currentMachineId);
         if (machine) {
-            MachineController.renderSingleDashboard(machine, DOM, getEvalTime());
+            MachineController.renderSingleDashboard(machine, DOM, evalTime);
         }
     });
 
@@ -1204,9 +1247,10 @@ function setupEventListeners() {
         });
     });
 
-    // Quick Jump Buttons in Overview tab
-    document.querySelectorAll('.btn-jump-tab').forEach(btn => {
-        btn.addEventListener('click', (e) => {
+    // Quick Jump Buttons in Overview tab (delegated for dynamic support)
+    document.addEventListener('click', (e) => {
+        const btn = e.target.closest('.btn-jump-tab');
+        if (btn) {
             e.preventDefault();
             const targetTab = btn.getAttribute('data-target-tab');
             if (targetTab) {
@@ -1218,7 +1262,7 @@ function setupEventListeners() {
                 }
                 switchTab(targetTab);
             }
-        });
+        }
     });
 
     // Replacement Filter Bar delegation
@@ -1700,6 +1744,7 @@ function setupEventListeners() {
     let shareTargetMachineId = null;
 
     const openShareModal = (machineId = null) => {
+        if (machineId === 'fleet') machineId = null;
         shareTargetMachineId = machineId;
         const machine = machineId ? AppState.machines.find(m => m.id === machineId) : null;
 
@@ -1763,7 +1808,13 @@ function setupEventListeners() {
             }
 
             const waUrl = `https://wa.me/?text=${encodeURIComponent(msg)}`;
-            window.open(waUrl, '_blank');
+            const link = document.createElement('a');
+            link.href = waUrl;
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
             closeShareModal();
             UI.showToast('Opening WhatsApp Share...', 'info');
         });
@@ -1903,6 +1954,10 @@ function setupEventListeners() {
                     const restored = StorageService.importBackup(parsed);
                     AppState.machines = restored.machines;
                     AppState.settings = restored.settings;
+                    if (restored.simulatedDate) {
+                        AppState.simulatedDate = restored.simulatedDate;
+                        if (DOM.todayDate) DOM.todayDate.value = AppState.simulatedDate;
+                    }
 
                     UI.applyTheme(AppState.settings.theme);
                     updateModeBadgeUI();
@@ -1937,12 +1992,11 @@ function setupEventListeners() {
             if (DOM.cfgRecalInterval && DOM.cfgRecalInterval.value) {
                 AppState.settings.recalibrationInterval = Number(DOM.cfgRecalInterval.value);
             }
-            if (DOM.cfgEngPassword) {
-                AppState.settings.engineerPassword = DOM.cfgEngPassword.value;
-            }
 
             await StorageService.saveSettingsAsync(AppState.settings);
             updateAppTitle();
+            populateSettingsForm();
+            window.dispatchEvent(new CustomEvent('lms-settings-updated', { detail: AppState.settings }));
             UI.showToast('System settings saved successfully ✓', 'success');
         });
     }
@@ -1958,7 +2012,111 @@ function setupEventListeners() {
             await StorageService.saveSettingsAsync(AppState.settings);
             populateSettingsForm();
             updateAppTitle();
+            window.dispatchEvent(new CustomEvent('lms-settings-updated', { detail: AppState.settings }));
             UI.showToast('Settings restored to defaults', 'info');
+        });
+    }
+
+    // Change Password Modal & Visibility Toggles
+    const closeChangePasswordModal = () => {
+        UI.hideModal(DOM.changePasswordOverlay);
+        if (DOM.pwdCurrent) DOM.pwdCurrent.value = '';
+        if (DOM.pwdNew) DOM.pwdNew.value = '';
+        if (DOM.pwdConfirm) DOM.pwdConfirm.value = '';
+        if (DOM.pwdErrorMsg) {
+            DOM.pwdErrorMsg.textContent = '';
+            DOM.pwdErrorMsg.classList.add('hidden');
+        }
+        // Reset all password fields to type="password" and active state
+        document.querySelectorAll('.pwd-input-wrapper').forEach(wrapper => {
+            const input = wrapper.querySelector('input');
+            const toggle = wrapper.querySelector('.btn-pwd-toggle');
+            if (input) input.type = 'password';
+            if (toggle) {
+                toggle.classList.remove('active');
+                toggle.innerHTML = `<svg class="icon eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        });
+    };
+
+    if (DOM.btnOpenChangePassword) {
+        DOM.btnOpenChangePassword.addEventListener('click', () => {
+            if (DOM.pwdCurrent) DOM.pwdCurrent.value = '';
+            if (DOM.pwdNew) DOM.pwdNew.value = '';
+            if (DOM.pwdConfirm) DOM.pwdConfirm.value = '';
+            if (DOM.pwdErrorMsg) {
+                DOM.pwdErrorMsg.textContent = '';
+                DOM.pwdErrorMsg.classList.add('hidden');
+            }
+            UI.showModal(DOM.changePasswordOverlay);
+            if (DOM.pwdCurrent) setTimeout(() => DOM.pwdCurrent.focus(), 50);
+        });
+    }
+
+    if (DOM.btnCloseChangePassword) DOM.btnCloseChangePassword.addEventListener('click', closeChangePasswordModal);
+    if (DOM.btnCancelChangePassword) DOM.btnCancelChangePassword.addEventListener('click', closeChangePasswordModal);
+
+    // Eye icon visibility toggle for each password input independently
+    document.querySelectorAll('.btn-pwd-toggle').forEach(toggleBtn => {
+        toggleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const targetId = toggleBtn.getAttribute('data-target');
+            const targetInput = document.getElementById(targetId);
+            if (!targetInput) return;
+
+            const isCurrentlyPassword = targetInput.type === 'password';
+            targetInput.type = isCurrentlyPassword ? 'text' : 'password';
+
+            if (isCurrentlyPassword) {
+                toggleBtn.classList.add('active');
+                toggleBtn.setAttribute('title', 'Hide password');
+                toggleBtn.innerHTML = `<svg class="icon eye-off-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>`;
+            } else {
+                toggleBtn.classList.remove('active');
+                toggleBtn.setAttribute('title', 'Show password');
+                toggleBtn.innerHTML = `<svg class="icon eye-icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>`;
+            }
+        });
+    });
+
+    if (DOM.btnSubmitChangePassword) {
+        DOM.btnSubmitChangePassword.addEventListener('click', async () => {
+            const currentVal = DOM.pwdCurrent ? DOM.pwdCurrent.value.trim() : '';
+            const newVal = DOM.pwdNew ? DOM.pwdNew.value.trim() : '';
+            const confirmVal = DOM.pwdConfirm ? DOM.pwdConfirm.value.trim() : '';
+
+            const expectedCurrent = AppState.settings.engineerPassword || "1234";
+
+            if (currentVal !== expectedCurrent) {
+                if (DOM.pwdErrorMsg) {
+                    DOM.pwdErrorMsg.textContent = 'Incorrect current password.';
+                    DOM.pwdErrorMsg.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (!newVal) {
+                if (DOM.pwdErrorMsg) {
+                    DOM.pwdErrorMsg.textContent = 'New password cannot be empty.';
+                    DOM.pwdErrorMsg.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (newVal !== confirmVal) {
+                if (DOM.pwdErrorMsg) {
+                    DOM.pwdErrorMsg.textContent = 'New passwords do not match.';
+                    DOM.pwdErrorMsg.classList.remove('hidden');
+                }
+                return;
+            }
+
+            AppState.settings.engineerPassword = newVal;
+            await StorageService.saveSettingsAsync(AppState.settings);
+            closeChangePasswordModal();
+            populateSettingsForm();
+            UI.showToast('Engineer password changed successfully ✓', 'success');
         });
     }
 

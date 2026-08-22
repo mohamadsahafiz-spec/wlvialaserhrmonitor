@@ -88,6 +88,7 @@ app.get('/api/settings', (req, res) => {
     theme: "dark",
     defaultRatedLife: 25000,
     defaultWarningPercentage: 80,
+    recalibrationInterval: 30,
     engineerPassword: "1234",
     accessMode: "ENGINEER"
   });
