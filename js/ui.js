@@ -61,33 +61,51 @@ export const UI = {
      */
     exportToCSV(machines, evalTime, simulatedDateStr) {
         if (!machines || machines.length === 0) return;
-        let csvContent = "data:text/csv;charset=utf-8,";
-        csvContent += "Machine No,Machine Name,Serial,Department,Rated Life,Current Hour,Remaining,Status,Accuracy,Health %\n";
+        let csvContent = "";
+        if (typeof window !== 'undefined' && window.StorageService && typeof window.StorageService.generateCsvReport === 'function') {
+            csvContent = window.StorageService.generateCsvReport(machines, evalTime);
+        } else {
+            csvContent = "Machine No,Machine Name,Serial No,Department,Model,Laser Count,Rated Life (hrs),Current Laser Hour,Remaining Hours,Life Remaining %,Status,Accuracy,Last Recalibration Date\n";
+            machines.forEach(m => {
+                const met = window.LaserEngine ? window.LaserEngine.calculateMachineMetrics(m, evalTime) : {};
+                const crit = met.mostCriticalLaser || {};
+                const ratedLife = crit.ratedLife || m.ratedLife || 25000;
+                const currentHr = (crit.currentHour !== null && crit.currentHour !== undefined && crit.currentHour !== '—') ? crit.currentHour : 'N/A';
+                const remainingHr = (crit.remainingTotal !== null && crit.remainingTotal !== undefined && crit.remainingTotal !== '—') ? crit.remainingTotal : 'N/A';
+                const lifePct = (crit.lifeRemainingPercent !== null && crit.lifeRemainingPercent !== undefined) ? `${Math.round(crit.lifeRemainingPercent)}%` : 'N/A';
+                const status = met.status || 'SAFE';
+                const accuracy = met.accuracy ? met.accuracy.level : 'HIGH';
+                const lastRecal = crit.lastRecalibrationDate || m.lastRecalibrationDate || 'N/A';
+                const laserCount = met.totalLasers || (Array.isArray(m.lasers) ? m.lasers.length : 1);
 
-        machines.forEach(m => {
-            const met = window.LaserEngine ? window.LaserEngine.calculateMachineMetrics(m, evalTime) : {};
-            const row = [
-                m.machineNo,
-                m.machineName,
-                m.serialNo,
-                m.department,
-                m.ratedLife,
-                met.currentHour || 0,
-                met.remainingTotal || 0,
-                met.status || 'SAFE',
-                met.accuracy ? met.accuracy.level : 'HIGH',
-                Math.round(met.healthPercent || 0)
-            ].join(",");
-            csvContent += row + "\n";
-        });
+                const row = [
+                    `"${(m.machineNo || '').replace(/"/g, '""')}"`,
+                    `"${(m.machineName || '').replace(/"/g, '""')}"`,
+                    `"${(m.serialNo || '').replace(/"/g, '""')}"`,
+                    `"${(m.department || '').replace(/"/g, '""')}"`,
+                    `"${(m.model || '').replace(/"/g, '""')}"`,
+                    laserCount,
+                    ratedLife,
+                    currentHr,
+                    remainingHr,
+                    `"${lifePct}"`,
+                    status,
+                    accuracy,
+                    `"${lastRecal}"`
+                ].join(",");
+                csvContent += row + "\n";
+            });
+        }
 
-        const encodedUri = encodeURI(csvContent);
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
         const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `WaferDriller_v5_Report_${simulatedDateStr || 'export'}.csv`);
+        link.setAttribute("href", url);
+        link.setAttribute("download", `LMS_Fleet_Report_${simulatedDateStr || new Date().toISOString().split('T')[0]}.csv`);
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
     },
 
     /**

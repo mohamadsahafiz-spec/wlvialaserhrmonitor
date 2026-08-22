@@ -433,10 +433,14 @@ async function initApp() {
 
     setupEventListeners();
 
-    // Smooth real-time 1-second refresh
+    // Smooth real-time 1-second refresh with visibility & active modal guards
+    let _lastEvalMinute = null;
     setInterval(() => {
+        if (document.hidden) return; // Prevent background tab CPU consumption
+
         const evalTime = getEvalTime();
         updateOperationsStatusBar();
+
         if (DOM.viewFleet && !DOM.viewFleet.classList.contains('hidden')) {
             DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, evalTime, handleMachineSelect, handleEditMachine, handleDeleteMachine, true);
         } else if (DOM.viewSingle && !DOM.viewSingle.classList.contains('hidden') && AppState.currentMachineId) {
@@ -1365,6 +1369,9 @@ function setupEventListeners() {
             if (updatedMachine) {
                 const evalTime = getEvalTime();
                 MachineController.renderSingleDashboard(updatedMachine, DOM, evalTime, false, getMachineCallbacks());
+                if (DOM.fleetGrid) {
+                    DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, evalTime, handleMachineSelect, handleEditMachine, handleDeleteMachine);
+                }
             }
         });
     }
@@ -1494,7 +1501,11 @@ function setupEventListeners() {
             UI.showToast(`Saved ${lname} ✓`, 'success');
 
             const evalTime = getEvalTime();
-            MachineController.renderSingleDashboard(machine, DOM, evalTime, false, getMachineCallbacks());
+            const freshMach = AppState.machines.find(m => m.id === machine.id) || machine;
+            MachineController.renderSingleDashboard(freshMach, DOM, evalTime, false, getMachineCallbacks());
+            if (DOM.fleetGrid) {
+                DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, evalTime, handleMachineSelect, handleEditMachine, handleDeleteMachine);
+            }
         });
     }
 
@@ -1544,7 +1555,11 @@ function setupEventListeners() {
             checkAndHandleIdentityChange(machine, entModel, entSerial, entName, entDept, (isConfirmedIdentityChange) => {
                 StorageService.saveMachine(machine);
                 AppState.machines = StorageService.loadMachines();
-                MachineController.renderSingleDashboard(machine, DOM, getEvalTime(), false, getMachineCallbacks());
+                const freshMachine = AppState.machines.find(m => m.id === machine.id) || machine;
+                MachineController.renderSingleDashboard(freshMachine, DOM, getEvalTime(), false, getMachineCallbacks());
+                if (DOM.fleetGrid) {
+                    DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, getEvalTime(), handleMachineSelect, handleEditMachine, handleDeleteMachine);
+                }
                 UI.showToast(isConfirmedIdentityChange ? `Updated Identity for ${machine.machineNo} ✓` : `Saved configuration for ${machine.machineNo} ✓`, 'success');
 
                 const origTxt = DOM.btnSaveMachine.textContent;
@@ -1641,7 +1656,10 @@ function setupEventListeners() {
             if (DOM.prevHour) DOM.prevHour.value = m.baseLaserHour;
             if (DOM.prevDate) DOM.prevDate.value = safeToDatetimeLocal(m.baseTimestamp);
             MachineController.renderCalibrationHistory(m, DOM.calibrationTbody);
-            MachineController.renderSingleDashboard(m, DOM, getEvalTime());
+            MachineController.renderSingleDashboard(m, DOM, getEvalTime(), false, getMachineCallbacks());
+        }
+        if (DOM.fleetGrid) {
+            DashboardController.renderFleetView(DOM.fleetGrid, AppState.machines, AppState.filters, getEvalTime(), handleMachineSelect, handleEditMachine, handleDeleteMachine);
         }
     });
 

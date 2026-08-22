@@ -2,6 +2,7 @@
    STORAGE.JS - Local Storage & Data Persistence Layer
    ===================================================== */
 import { dateOffset } from './utils.js';
+import { LaserEngine } from './laserEngine.js';
 
 const STORAGE_KEY = 'wafer_driller_fleet_v5';
 const SETTINGS_KEY = 'wafer_driller_settings_v5';
@@ -13,6 +14,8 @@ let currentSyncStatus = CLOUD_SYNC_ENABLED ? 'SYNCING' : 'LOCAL';
 let syncTimer = null;
 let lastMachinesHash = '';
 let lastSettingsHash = '';
+let _cachedMachines = null;
+let _cachedSettings = null;
 
 function getMachinesHash(machines) {
     try {
@@ -405,6 +408,9 @@ export const StorageService = {
     },
 
     loadMachines() {
+        if (_cachedMachines !== null) {
+            return _cachedMachines;
+        }
         try {
             const raw = localStorage.getItem(STORAGE_KEY);
             if (raw === null) {
@@ -418,7 +424,9 @@ export const StorageService = {
                 this.saveMachines(initial);
                 return initial;
             }
-            return this.normalizeMachines(parsed);
+            const normalized = this.normalizeMachines(parsed);
+            _cachedMachines = normalized;
+            return normalized;
         } catch (err) {
             console.error('[StorageService] Error loading machines:', err);
             return getFallbackMachines();
@@ -426,6 +434,8 @@ export const StorageService = {
     },
 
     saveMachines(machines) {
+        _cachedMachines = machines;
+        LaserEngine.clearCache();
         try {
             localStorage.setItem(STORAGE_KEY, JSON.stringify(machines));
             lastMachinesHash = getMachinesHash(machines);
@@ -445,7 +455,7 @@ export const StorageService = {
     },
 
     saveMachine(machineData) {
-        const machines = this.loadMachines();
+        const machines = [...this.loadMachines()];
         const index = machines.findIndex(m => m.id === machineData.id);
         const updatedTarget = { ...machineData, lastUpdated: new Date().toISOString() };
         if (index !== -1) {
@@ -493,6 +503,9 @@ export const StorageService = {
     },
 
     loadSettings() {
+        if (_cachedSettings !== null) {
+            return _cachedSettings;
+        }
         try {
             const raw = localStorage.getItem(SETTINGS_KEY);
             const defaults = {
@@ -505,14 +518,19 @@ export const StorageService = {
                 engineerPassword: "1234",
                 accessMode: "ENGINEER"
             };
-            if (!raw) return defaults;
+            if (!raw) {
+                _cachedSettings = defaults;
+                return defaults;
+            }
             const parsed = JSON.parse(raw);
             if (parsed.systemTitle === "Wafer Driller BMD302W/BMD250WM Management") {
                 parsed.systemTitle = "Laser Management System";
             }
-            return { ...defaults, ...parsed };
+            const result = { ...defaults, ...parsed };
+            _cachedSettings = result;
+            return result;
         } catch (err) {
-            return {
+            const defaults = {
                 systemTitle: "Laser Management System",
                 version: "1.0",
                 theme: "dark",
@@ -522,10 +540,13 @@ export const StorageService = {
                 engineerPassword: "1234",
                 accessMode: "ENGINEER"
             };
+            _cachedSettings = defaults;
+            return defaults;
         }
     },
 
     saveSettings(settings) {
+        _cachedSettings = settings;
         try {
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
             lastSettingsHash = getSettingsHash(settings);
@@ -740,6 +761,8 @@ export const StorageService = {
                     const normalized = this.normalizeMachines(remote);
                     const newHash = getMachinesHash(normalized);
                     if (lastMachinesHash && newHash !== lastMachinesHash) {
+                        _cachedMachines = normalized;
+                        LaserEngine.clearCache();
                         localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
                         lastMachinesHash = newHash;
                         updateSyncStatus('SYNCED');
@@ -761,6 +784,7 @@ export const StorageService = {
                         const mergedSettings = { ...this.loadSettings(), ...remoteSettings };
                         const newSHash = getSettingsHash(mergedSettings);
                         if (lastSettingsHash && newSHash !== lastSettingsHash) {
+                            _cachedSettings = mergedSettings;
                             localStorage.setItem(SETTINGS_KEY, JSON.stringify(mergedSettings));
                             lastSettingsHash = newSHash;
                             if (typeof window !== 'undefined') {
@@ -788,6 +812,54 @@ export const StorageService = {
                 }
             });
         }
+    },
+
+    /**
+     * Authoritative CSV Report Generation consuming LaserEngine directly.
+     */
+    generateCsvReport(machines, evalTime) {
+        const list = Array.isArray(machines) ? machines : this.loadMachines();
+        const evalDate = evalTime || (typeof window !== 'undefined' && window.getSimulatedDate ? window.getSimulatedDate() : new Date());
+
+        let csv = "Machine No,Machine Name,Serial No,Department,Model,Laser Count,Rated Life (hrs),Current Laser Hour,Remaining Hours,Life Remaining %,Status,Accuracy,Last Recalibration Date\n";
+
+        list.forEach(m => {
+            let met = {};
+            if (typeof LaserEngine !== 'undefined' && LaserEngine.calculateMachineMetrics) {
+                met = LaserEngine.calculateMachineMetrics(m, evalDate);
+            } else if (typeof window !== 'undefined' && window.LaserEngine && window.LaserEngine.calculateMachineMetrics) {
+                met = window.LaserEngine.calculateMachineMetrics(m, evalDate);
+            }
+
+            const crit = met.mostCriticalLaser || {};
+            const ratedLife = crit.ratedLife || m.ratedLife || 25000;
+            const currentHr = (crit.currentHour !== null && crit.currentHour !== undefined && crit.currentHour !== '—') ? crit.currentHour : 'N/A';
+            const remainingHr = (crit.remainingTotal !== null && crit.remainingTotal !== undefined && crit.remainingTotal !== '—') ? crit.remainingTotal : 'N/A';
+            const lifePct = (crit.lifeRemainingPercent !== null && crit.lifeRemainingPercent !== undefined) ? `${Math.round(crit.lifeRemainingPercent)}%` : 'N/A';
+            const status = met.status || 'SAFE';
+            const accuracy = met.accuracy ? met.accuracy.level : 'HIGH';
+            const lastRecal = crit.lastRecalibrationDate || m.lastRecalibrationDate || 'N/A';
+            const laserCount = met.totalLasers || (Array.isArray(m.lasers) ? m.lasers.length : 1);
+
+            const row = [
+                `"${(m.machineNo || '').replace(/"/g, '""')}"`,
+                `"${(m.machineName || '').replace(/"/g, '""')}"`,
+                `"${(m.serialNo || '').replace(/"/g, '""')}"`,
+                `"${(m.department || '').replace(/"/g, '""')}"`,
+                `"${(m.model || '').replace(/"/g, '""')}"`,
+                laserCount,
+                ratedLife,
+                currentHr,
+                remainingHr,
+                `"${lifePct}"`,
+                status,
+                accuracy,
+                `"${lastRecal}"`
+            ].join(",");
+            csv += row + "\n";
+        });
+
+        return csv;
     }
 };
 

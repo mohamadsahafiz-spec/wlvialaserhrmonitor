@@ -5,6 +5,20 @@ import { LaserEngine } from './laserEngine.js';
 import { ChartRenderer } from './charts.js';
 import { formatDate } from './utils.js';
 
+let _lastSummary = {
+    total: -1,
+    safeCount: -1,
+    warnCount: -1,
+    alarmCount: -1,
+    avgHealth: -1,
+    totalLasers: -1,
+    criticalLasers: -1,
+    insight: ''
+};
+
+let _lastActionCenterSig = '';
+const _expandedDrawers = new Set();
+
 export const DashboardController = {
     /**
      * Update Fleet Statistics Summary Panel above grid.
@@ -37,26 +51,47 @@ export const DashboardController = {
         });
 
         const total = machines.length;
-        const avgLifeRemaining = totalLasers > 0 ? (sumLifePct / totalLasers) : 100;
+        const avgLifeRemaining = totalLasers > 0 ? Math.round(sumLifePct / totalLasers) : 100;
 
-        if (totalEl) totalEl.textContent = total;
-        if (safeEl) safeEl.textContent = safeCount;
-        if (warnEl) warnEl.textContent = warnCount;
-        if (alarmEl) alarmEl.textContent = alarmCount;
-        if (avgHealthEl) avgHealthEl.textContent = `${Math.round(avgLifeRemaining)}%`;
-        if (totalHrsEl) totalHrsEl.textContent = `${totalLasers} Heads (${criticalLasers} Exceeded)`;
+        let insightText = '';
+        if (total === 0) {
+            insightText = 'No machines registered. Click "+ Add Machine" to begin fleet laser monitoring.';
+        } else if (alarmCount > 0) {
+            insightText = `${alarmCount} machine(s) in ALARM / Contingency state. Immediate laser diode replacement and operational risk management required.`;
+        } else if (warnCount > 0) {
+            insightText = `${warnCount} machine(s) approaching 80% life threshold. Plan procurement and schedule preventive replacement window.`;
+        } else {
+            insightText = `Fleet optimal. All ${totalLasers} active laser diode heads operating within normal baseline limits.`;
+        }
 
-        // Dynamic AI Insight Recommendation
-        if (insightEl) {
-            if (total === 0) {
-                insightEl.textContent = 'No machines registered. Click "+ Add Machine" to begin fleet laser monitoring.';
-            } else if (alarmCount > 0) {
-                insightEl.textContent = `${alarmCount} machine(s) in ALARM / Contingency state. Immediate laser diode replacement and operational risk management required.`;
-            } else if (warnCount > 0) {
-                insightEl.textContent = `${warnCount} machine(s) approaching 80% life threshold. Plan procurement and schedule preventive replacement window.`;
-            } else {
-                insightEl.textContent = `Fleet optimal. All ${totalLasers} active laser diode heads operating within normal baseline limits.`;
-            }
+        if (_lastSummary.total !== total) {
+            if (totalEl) totalEl.textContent = total;
+            _lastSummary.total = total;
+        }
+        if (_lastSummary.safeCount !== safeCount) {
+            if (safeEl) safeEl.textContent = safeCount;
+            _lastSummary.safeCount = safeCount;
+        }
+        if (_lastSummary.warnCount !== warnCount) {
+            if (warnEl) warnEl.textContent = warnCount;
+            _lastSummary.warnCount = warnCount;
+        }
+        if (_lastSummary.alarmCount !== alarmCount) {
+            if (alarmEl) alarmEl.textContent = alarmCount;
+            _lastSummary.alarmCount = alarmCount;
+        }
+        if (_lastSummary.avgHealth !== avgLifeRemaining) {
+            if (avgHealthEl) avgHealthEl.textContent = `${avgLifeRemaining}%`;
+            _lastSummary.avgHealth = avgLifeRemaining;
+        }
+        if (_lastSummary.totalLasers !== totalLasers || _lastSummary.criticalLasers !== criticalLasers) {
+            if (totalHrsEl) totalHrsEl.textContent = `${totalLasers} Heads (${criticalLasers} Exceeded)`;
+            _lastSummary.totalLasers = totalLasers;
+            _lastSummary.criticalLasers = criticalLasers;
+        }
+        if (_lastSummary.insight !== insightText) {
+            if (insightEl) insightEl.textContent = insightText;
+            _lastSummary.insight = insightText;
         }
     },
 
@@ -129,7 +164,9 @@ export const DashboardController = {
             if (metrics.status === 'SAFE') {
                 const crit = metrics.mostCriticalLaser;
                 if (crit.lastRecalibrationDate) {
-                    const daysSince = Math.floor((new Date(evalTime) - new Date(crit.lastRecalibrationDate)) / (1000 * 60 * 60 * 24));
+                    const daysSince = (typeof crit.daysSinceRecal === 'number' && crit.daysSinceRecal !== null)
+                        ? crit.daysSinceRecal
+                        : LaserEngine.calculateDaysSinceRecalibration(crit.lastRecalibrationDate, evalTime);
                     if (daysSince > 45 && actionItems.length < 3) {
                         actionItems.push({
                             priority: 4,
@@ -150,6 +187,13 @@ export const DashboardController = {
         });
 
         actionItems.sort((a, b) => a.priority - b.priority);
+
+        // Fast signature check to avoid unnecessary DOM teardown
+        const currentSig = actionItems.map(i => `${i.machineId}_${i.type}_${i.desc}`).join('|');
+        if (currentSig === _lastActionCenterSig && container.children.length > 0) {
+            return;
+        }
+        _lastActionCenterSig = currentSig;
 
         container.innerHTML = '';
 

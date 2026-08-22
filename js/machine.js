@@ -163,23 +163,23 @@ export const MachineController = {
         // Render Laser Heads Grid (in Lasers tab)
         this.renderLaserHeadsGrid(machine, metrics, evalTime, callbacks);
 
-        // Render Permanent Replacement History Timeline
-        this.renderReplacementHistory(machine, null, this.activeReplFilter || 'ALL');
-
-        // Render Calibration Table
-        const calibTable = document.getElementById('calibration-tbody');
-        if (calibTable) this.renderCalibrationHistory(machine, calibTable);
-
-        // Render Unified History Timeline for Audit Tab
-        const timelineContainer = document.getElementById('machine-unified-timeline');
-        if (timelineContainer) {
-            this.renderUnifiedTimeline(machine, timelineContainer, this.activeHistoryFilter || 'ALL', evalTime);
-        }
-
-        const maintTable = document.getElementById('maintenance-tbody');
-        if (maintTable) this.renderMaintenanceLog(machine, maintTable);
-
         if (!silent) {
+            // Render Permanent Replacement History Timeline
+            this.renderReplacementHistory(machine, null, this.activeReplFilter || 'ALL');
+
+            // Render Calibration Table
+            const calibTable = document.getElementById('calibration-tbody');
+            if (calibTable) this.renderCalibrationHistory(machine, calibTable);
+
+            // Render Unified History Timeline for Audit Tab
+            const timelineContainer = document.getElementById('machine-unified-timeline');
+            if (timelineContainer) {
+                this.renderUnifiedTimeline(machine, timelineContainer, this.activeHistoryFilter || 'ALL', evalTime);
+            }
+
+            const maintTable = document.getElementById('maintenance-tbody');
+            if (maintTable) this.renderMaintenanceLog(machine, maintTable);
+
             this.updateLegendsAndScales(machine, DOM);
         }
     },
@@ -193,8 +193,37 @@ export const MachineController = {
         const container = document.getElementById('overview-laser-summary-grid');
         if (!container) return;
 
-        container.innerHTML = '';
         const laserList = machineMetrics.laserMetricsList || [];
+        const existingRows = Array.from(container.querySelectorAll('.overview-laser-compact-row'));
+        const existingIds = existingRows.map(r => r.getAttribute('data-laser-id'));
+        const listIds = laserList.map(lm => lm.id);
+
+        if (existingRows.length === laserList.length && existingIds.every((id, idx) => id === listIds[idx])) {
+            laserList.forEach((lm, idx) => {
+                const row = existingRows[idx];
+                let badgeClass = 'color-safe', dotColor = 'var(--green)';
+                if (lm.status === 'WARNING') { badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; }
+                if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
+                if (lm.status === 'BASELINE_REQUIRED') { badgeClass = 'color-baseline'; dotColor = '#3b82f6'; }
+
+                const badge = row.querySelector('.mc-status-badge');
+                if (badge) {
+                    const statusText = lm.status === 'BASELINE_REQUIRED' ? 'BASELINE REQ' : lm.status;
+                    const newClass = `mc-status-badge ${badgeClass}`;
+                    if (badge.className !== newClass) badge.className = newClass;
+                    const span = badge.querySelector('span');
+                    if (span && span.textContent !== statusText) span.textContent = statusText;
+                    const led = badge.querySelector('.mc-led');
+                    if (led && led.style.background !== dotColor) {
+                        led.style.background = dotColor;
+                        led.style.boxShadow = `0 0 6px ${dotColor}`;
+                    }
+                }
+            });
+            return;
+        }
+
+        container.innerHTML = '';
 
         laserList.forEach((lm) => {
             let badgeClass = 'color-safe', dotColor = 'var(--green)';
@@ -317,12 +346,7 @@ export const MachineController = {
             }
 
             // Calculate next due date (30 days from last calibration)
-            let nextDueStr = '—';
-            const calDateObj = new Date(latest.date);
-            if (!isNaN(calDateObj.getTime())) {
-                const nextDateObj = new Date(calDateObj.getTime() + (30 * 24 * 60 * 60 * 1000));
-                nextDueStr = nextDateObj.toISOString().split('T')[0];
-            }
+            let nextDueStr = LaserEngine.calculateNextRecalibrationDate(latest.date);
 
             if (badgeEl) {
                 badgeEl.className = `mc-status-badge ${badgeClass}`;
@@ -340,14 +364,7 @@ export const MachineController = {
         } else {
             // No calibration records yet (factory baseline state)
             const baseDate = machine.baseTimestamp ? formatDate(machine.baseTimestamp) : 'Factory Baseline';
-            let nextDueStr = '—';
-            if (machine.baseTimestamp) {
-                const baseDateObj = new Date(machine.baseTimestamp);
-                if (!isNaN(baseDateObj.getTime())) {
-                    const nextDateObj = new Date(baseDateObj.getTime() + (30 * 24 * 60 * 60 * 1000));
-                    nextDueStr = nextDateObj.toISOString().split('T')[0];
-                }
-            }
+            let nextDueStr = machine.baseTimestamp ? LaserEngine.calculateNextRecalibrationDate(machine.baseTimestamp) : '—';
 
             if (badgeEl) {
                 badgeEl.className = 'mc-status-badge color-safe';
@@ -552,9 +569,64 @@ export const MachineController = {
         const container = document.getElementById('laser-heads-grid');
         if (!container) return;
 
-        container.innerHTML = '';
-
         const laserList = machineMetrics.laserMetricsList || [];
+        const existingCards = Array.from(container.querySelectorAll('.laser-head-card'));
+        const existingIds = existingCards.map(c => {
+            const btn = c.querySelector('.btn-replace-laser');
+            return btn ? btn.getAttribute('data-laser-id') : null;
+        });
+        const listIds = laserList.map(lm => lm.id);
+
+        if (existingCards.length === laserList.length && existingIds.every((id, idx) => id === listIds[idx])) {
+            laserList.forEach((lm, idx) => {
+                const card = existingCards[idx];
+                let badgeClass = 'color-safe', dotColor = 'var(--green)';
+                if (lm.status === 'WARNING') { badgeClass = 'color-warning'; dotColor = 'var(--yellow)'; }
+                if (lm.status === 'ALARM') { badgeClass = 'color-alarm'; dotColor = 'var(--red)'; }
+                if (lm.status === 'BASELINE_REQUIRED') { badgeClass = 'color-baseline'; dotColor = '#3b82f6'; }
+
+                const currentHrsText = lm.currentHour !== null && lm.currentHour !== '—' ? `${lm.currentHour} hrs` : '—';
+                let remainText = '—';
+                if (lm.remainingTotal !== null && lm.remainingTotal !== '—') {
+                    const formatHrs = Math.abs(lm.remainingTotal);
+                    remainText = lm.remainingTotal < 0 ? `-${formatHrs} hrs` : `${formatHrs} hrs`;
+                }
+
+                let countdownText = '—';
+                if (lm.remainingDaysInfo && lm.remainingDaysInfo.daysVal !== null && !isNaN(lm.remainingDaysInfo.daysVal)) {
+                    const daysVal = Math.abs(lm.remainingDaysInfo.daysVal);
+                    countdownText = lm.remainingTotal < 0 ? `${daysVal}d Overdue` : `${daysVal}d remaining`;
+                }
+
+                const statVals = card.querySelectorAll('.lhc-stat-val');
+                if (statVals[0] && statVals[0].textContent !== currentHrsText) statVals[0].textContent = currentHrsText;
+                if (statVals[1]) {
+                    if (statVals[1].textContent !== remainText) statVals[1].textContent = remainText;
+                    statVals[1].className = `lhc-stat-val ${badgeClass}`;
+                }
+                if (statVals[2]) {
+                    if (statVals[2].textContent !== countdownText) statVals[2].textContent = countdownText;
+                    statVals[2].className = `lhc-stat-val ${lm.remainingTotal < 0 ? 'color-alarm' : ''}`;
+                }
+
+                const progressMetaStrong = card.querySelector('.lhc-progress-meta strong');
+                const progressFill = card.querySelector('.mini-health-fill');
+                const lifeDisplay = lm.baselineRequired ? '—' : (lm.isContingencyActive ? '0%' : lm.formattedLifeRemaining);
+                const lifePct = (lm.baselineRequired || lm.isContingencyActive) ? 0 : (lm.lifeRemainingPercent || 0);
+
+                if (progressMetaStrong) {
+                    progressMetaStrong.textContent = lifeDisplay;
+                    progressMetaStrong.style.color = dotColor;
+                }
+                if (progressFill) {
+                    progressFill.style.width = `${lifePct}%`;
+                    progressFill.style.background = dotColor;
+                }
+            });
+            return;
+        }
+
+        container.innerHTML = '';
 
         laserList.forEach((lm) => {
             let badgeClass = 'color-safe', dotColor = 'var(--green)';
