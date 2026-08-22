@@ -13,6 +13,7 @@ const AppState = {
     machines: [],
     settings: {},
     currentMachineId: null,
+    expandedCardId: null,
     simulatedDate: new Date().toISOString().split('T')[0],
     filters: { search: '', status: 'ALL', dept: 'ALL', model: 'ALL', sort: 'no-asc' },
     pendingRecalibration: null
