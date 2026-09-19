@@ -1,4 +1,4 @@
-# Laser Management System (Version 1.0)
+# Laser Management System (Version 2.0)
 
 A modular, production-grade SCADA laser operating hour tracking, remaining lifetime estimator, and recalibration management system built for semiconductor wafer drilling machines (BMD302W / BMD250WM).
 
@@ -6,7 +6,7 @@ A modular, production-grade SCADA laser operating hour tracking, remaining lifet
 
 ## 🚀 Overview
 
-The **Laser Management System Version 1.0** provides semiconductor process engineers, SCADA operators, and field technicians with a lightweight, reliable web application for monitoring laser diode operating hours, predicting remaining lifetime, executing recalibrations against physical meter readings, and maintaining audit logs.
+The **Laser Management System Version 2.0** provides semiconductor process engineers, SCADA operators, and field technicians with a lightweight, reliable web application for monitoring laser diode operating hours, predicting remaining lifetime, executing recalibrations against physical meter readings, and maintaining audit logs.
 
 ### Key Capabilities
 
