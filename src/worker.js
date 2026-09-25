@@ -32,9 +32,12 @@ function mapLmsToFsosPayload(m, lastUpdated) {
 }
 
 async function syncMachineToFsos(m, lastUpdated, env) {
-    const fsosUrl = env?.FSOS_SYNC_URL || env?.FSOS_ENDPOINT;
+    let fsosUrl = env?.FSOS_SYNC_URL || env?.FSOS_ENDPOINT;
     if (!fsosUrl) {
         return;
+    }
+    if (!fsosUrl.includes('/api/lms/sync')) {
+        fsosUrl = fsosUrl.replace(/\/+$/, '') + '/api/lms/sync';
     }
     const token = env?.FSOS_SYNC_SECRET || env?.FSOS_AUTH_TOKEN || '';
     const payload = mapLmsToFsosPayload(m, lastUpdated);

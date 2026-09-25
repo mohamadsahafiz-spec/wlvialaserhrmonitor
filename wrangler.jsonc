@@ -6,6 +6,9 @@
   "assets": {
     "directory": "."
   },
+  "vars": {
+    "FSOS_SYNC_URL": "https://fsos-worker.mohamadsahafiz.workers.dev/api/lms/sync"
+  },
   "d1_databases": [
     {
       "binding": "DB",
