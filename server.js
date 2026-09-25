@@ -53,8 +53,63 @@ app.get('/api/machines/:id', (req, res) => {
   res.json(machine);
 });
 
+function mapLmsToFsosPayload(m, lastUpdated) {
+  return {
+    id: m.id,
+    machineNumber: m.machineNo || m.machineNumber || '',
+    machineName: m.machineName || '',
+    serialNo: m.serialNo || '',
+    manufacturer: m.manufacturer || '',
+    model: m.model || '',
+    department: m.department || '',
+    lasers: Array.isArray(m.lasers) ? m.lasers.map(l => ({
+      id: l.id,
+      name: l.name,
+      serialNo: l.serialNo,
+      generation: l.generation,
+      lifecycleHistory: l.lifecycleHistory,
+      replacementHistory: l.replacementHistory,
+      ratedLife: l.ratedLife,
+      warningLife: l.warningLife,
+      contingencyCeiling: l.contingencyCeiling,
+      baseLaserHour: l.baseLaserHour,
+      baseTimestamp: l.baseTimestamp,
+      runtimeState: l.runtimeState,
+      lastRecalibrationDate: l.lastRecalibrationDate,
+      calibrationHistory: l.calibrationHistory,
+      installedDate: l.installedDate,
+      installedBy: l.installedBy
+    })) : [],
+    lastUpdated: lastUpdated || m.lastUpdated || new Date().toISOString()
+  };
+}
+
+async function syncMachineToFsosLocal(m, lastUpdated) {
+  const fsosUrl = process.env.FSOS_SYNC_URL || process.env.FSOS_ENDPOINT;
+  if (!fsosUrl) return;
+  const token = process.env.FSOS_SYNC_SECRET || process.env.FSOS_AUTH_TOKEN || '';
+  const payload = mapLmsToFsosPayload(m, lastUpdated);
+  try {
+    const headers = { 'Content-Type': 'application/json' };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+      headers['X-LMS-Auth-Token'] = token;
+    }
+    const res = await fetch(fsosUrl, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      console.error(`[LMS->FSOS Sync Local] Delivery failed with HTTP ${res.status}: ${res.statusText}`);
+    }
+  } catch (err) {
+    console.error(`[LMS->FSOS Sync Local] Network/delivery error: ${err.message}`);
+  }
+}
+
 // 3. POST /api/machines (Create or Update)
-app.post('/api/machines', (req, res) => {
+app.post('/api/machines', async (req, res) => {
   const m = req.body;
   if (!m || !m.id) {
     return res.status(400).json({ error: 'Invalid machine payload' });
@@ -68,6 +123,9 @@ app.post('/api/machines', (req, res) => {
     machines.push(updatedMachine);
   }
   writeJsonFile(MACHINES_FILE, machines);
+
+  await syncMachineToFsosLocal(updatedMachine, updatedMachine.lastUpdated);
+
   res.json({ success: true, id: m.id, lastUpdated: updatedMachine.lastUpdated });
 });
 

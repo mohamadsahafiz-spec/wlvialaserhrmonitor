@@ -1,7 +1,69 @@
 // Cloudflare Worker API for LMS D1 Synchronization
 
+function mapLmsToFsosPayload(m, lastUpdated) {
+    return {
+        id: m.id,
+        machineNumber: m.machineNo || m.machineNumber || '',
+        machineName: m.machineName || '',
+        serialNo: m.serialNo || '',
+        manufacturer: m.manufacturer || '',
+        model: m.model || '',
+        department: m.department || '',
+        lasers: Array.isArray(m.lasers) ? m.lasers.map(l => ({
+            id: l.id,
+            name: l.name,
+            serialNo: l.serialNo,
+            generation: l.generation,
+            lifecycleHistory: l.lifecycleHistory,
+            replacementHistory: l.replacementHistory,
+            ratedLife: l.ratedLife,
+            warningLife: l.warningLife,
+            contingencyCeiling: l.contingencyCeiling,
+            baseLaserHour: l.baseLaserHour,
+            baseTimestamp: l.baseTimestamp,
+            runtimeState: l.runtimeState,
+            lastRecalibrationDate: l.lastRecalibrationDate,
+            calibrationHistory: l.calibrationHistory,
+            installedDate: l.installedDate,
+            installedBy: l.installedBy
+        })) : [],
+        lastUpdated: lastUpdated || m.lastUpdated || new Date().toISOString()
+    };
+}
+
+async function syncMachineToFsos(m, lastUpdated, env) {
+    const fsosUrl = env?.FSOS_SYNC_URL || env?.FSOS_ENDPOINT;
+    if (!fsosUrl) {
+        return;
+    }
+    const token = env?.FSOS_SYNC_SECRET || env?.FSOS_AUTH_TOKEN || '';
+    const payload = mapLmsToFsosPayload(m, lastUpdated);
+
+    try {
+        const headers = {
+            'Content-Type': 'application/json'
+        };
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+            headers['X-LMS-Auth-Token'] = token;
+        }
+
+        const res = await fetch(fsosUrl, {
+            method: 'POST',
+            headers,
+            body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+            console.error(`[LMS->FSOS Sync] Delivery failed with HTTP ${res.status}: ${res.statusText}`);
+        }
+    } catch (err) {
+        console.error(`[LMS->FSOS Sync] Network/delivery error: ${err.message}`);
+    }
+}
+
 export default {
-    async fetch(request, env) {
+    async fetch(request, env, ctx) {
         const url = new URL(request.url);
         const path = url.pathname;
         const method = request.method;
@@ -86,6 +148,10 @@ export default {
                     JSON.stringify(m.maintenanceHistory || []),
                     lastUpdated
                 ).run();
+
+                // Trigger automatic push of authoritative laser data to FSOS
+                await syncMachineToFsos(m, lastUpdated, env);
+
                 return new Response(JSON.stringify({ success: true, id: m.id, lastUpdated }), { headers: corsHeaders });
             }
 
