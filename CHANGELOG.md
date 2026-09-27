@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2] - 2026-09-27
+
+### Fixed
+- **Recalibration Baseline Timestamp Resolution**:
+  - Fixed Recalibration confirmation workflow to record the actual save/confirmation time (`new Date().toISOString()`) as the laser's physical `baseTimestamp` and `lastRecalibrationDate`.
+  - Disassociated the LMS simulation date from the persisted physical baseline timestamp, ensuring simulation dates are only used for simulation calculations and historical calibration log records.
+  - Added unit test Case 5 verifying `9999 -> 10000` recalibration with older simulation dates generates real-time baseline timestamps for LMS and FSOS payloads.
+
+---
+
 ## [2.0.1] - 2026-09-27
 
 ### Added

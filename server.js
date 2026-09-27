@@ -91,23 +91,31 @@ async function syncMachineToFsosLocal(m, lastUpdated) {
     fsosUrl = fsosUrl.replace(/\/+$/, '') + '/api/lms/sync';
   }
   const token = process.env.FSOS_SYNC_SECRET || process.env.FSOS_AUTH_TOKEN || '';
+  if (!token) {
+    // In local development without secret configured, skip unauthenticated remote sync
+    return;
+  }
   const payload = mapLmsToFsosPayload(m, lastUpdated);
   try {
-    const headers = { 'Content-Type': 'application/json' };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-      headers['X-LMS-Auth-Token'] = token;
-    }
+    const headers = {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+      'X-LMS-Auth-Token': token
+    };
     const res = await fetch(fsosUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify(payload)
     });
     if (!res.ok) {
-      console.error(`[LMS->FSOS Sync Local] Delivery failed with HTTP ${res.status}: ${res.statusText}`);
+      if (res.status === 401) {
+        console.warn(`[LMS->FSOS Sync Local] Sync unauthorized (invalid or missing token)`);
+      } else {
+        console.warn(`[LMS->FSOS Sync Local] Delivery responded with HTTP ${res.status}: ${res.statusText}`);
+      }
     }
   } catch (err) {
-    console.error(`[LMS->FSOS Sync Local] Network/delivery error: ${err.message}`);
+    console.warn(`[LMS->FSOS Sync Local] Network/delivery notice: ${err.message}`);
   }
 }
 

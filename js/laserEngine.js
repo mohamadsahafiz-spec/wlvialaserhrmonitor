@@ -713,23 +713,26 @@ export const LaserEngine = {
         const existingLaserHistory = Array.isArray(targetLaser.calibrationHistory) ? targetLaser.calibrationHistory : [];
         const updatedLaserHistory = [historyRecord, ...existingLaserHistory].slice(0, 20);
 
+        const actualSaveTime = new Date().toISOString();
+
         lasers[laserIndex] = {
             ...targetLaser,
             baseLaserHour: validActual,
-            baseTimestamp: recalISO,
-            lastRecalibrationDate: recalISO,
+            baseTimestamp: actualSaveTime,
+            lastRecalibrationDate: actualSaveTime,
             calibrationHistory: updatedLaserHistory
         };
 
         const updatedMachine = {
             ...machine,
             lasers,
-            lastUpdated: recalISO
+            lastUpdated: actualSaveTime
         };
 
         return {
             updatedMachine,
             analysis: {
+                laserId: targetLaser.id,
                 laserName: targetLaser.name,
                 estimatedHour: Math.round(estHour * 10) / 10,
                 actualHour: validActual,

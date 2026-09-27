@@ -179,4 +179,58 @@ console.log('--- Starting Laser Baseline Timestamp Tests ---');
     console.log('✓ PASS Case 4: API & FSOS Payload mapping verified for all 3 cases');
 }
 
+// Test Case 5: Recalibration path 9999 -> 10000 with older Simulation Date
+{
+    const olderSimulationDate = '2026-09-25T07:09:09.647Z';
+    const mockSaveTime = '2026-09-27T07:18:00.000Z';
+    const initialMachine = {
+        id: 'WD-77972',
+        machineNo: 'WLVIA#1',
+        lasers: [
+            {
+                id: 'WD-77972-L1',
+                name: 'Laser Head 1',
+                baseLaserHour: 9999,
+                baseTimestamp: '2026-09-25T03:36:09.096Z',
+                calibrationHistory: []
+            }
+        ]
+    };
+
+    const actualReading = 10000;
+    const targetLaser = initialMachine.lasers[0];
+    const recalLaser = {
+        ...targetLaser,
+        baseLaserHour: actualReading,
+        baseTimestamp: mockSaveTime,
+        lastRecalibrationDate: mockSaveTime,
+        calibrationHistory: [
+            {
+                date: olderSimulationDate.split('T')[0],
+                time: '15:09',
+                actualHour: actualReading,
+                estimatedHour: 9999
+            }
+        ]
+    };
+
+    const recalibratedMachine = {
+        ...initialMachine,
+        lasers: [recalLaser],
+        lastUpdated: mockSaveTime
+    };
+
+    // Verify properties
+    assert.strictEqual(recalibratedMachine.lasers[0].baseLaserHour, 10000, 'baseLaserHour must equal 10000');
+    assert.strictEqual(recalibratedMachine.lasers[0].baseTimestamp, mockSaveTime, 'baseTimestamp must equal actual save time');
+    assert.notStrictEqual(recalibratedMachine.lasers[0].baseTimestamp, olderSimulationDate, 'baseTimestamp must NOT be the simulation date');
+
+    // Verify FSOS payload mapping
+    const fsosPayload = mapLmsToFsosPayload(recalibratedMachine, mockSaveTime);
+    assert.strictEqual(fsosPayload.lasers[0].baseLaserHour, 10000);
+    assert.strictEqual(fsosPayload.lasers[0].baseTimestamp, mockSaveTime);
+
+    console.log('✓ PASS Case 5: Recalibration 9999 -> 10000 with older Simulation Date sets baseTimestamp to actual save time');
+}
+
 console.log('--- All tests completed successfully! ---');

@@ -1,6 +1,6 @@
 {
   "name": "laser-management-system",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Laser Management System Version 2.0",
   "main": "server.js",
   "type": "commonjs",

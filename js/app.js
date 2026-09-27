@@ -1720,7 +1720,16 @@ function setupEventListeners() {
     if (DOM.btnConfirmDeviation) DOM.btnConfirmDeviation.addEventListener('click', () => {
         if (!AppState.pendingRecalibration) return;
 
-        const { updatedMachine } = AppState.pendingRecalibration;
+        const { updatedMachine, analysis } = AppState.pendingRecalibration;
+        const confirmTime = new Date().toISOString();
+        if (Array.isArray(updatedMachine.lasers)) {
+            const recalLaser = updatedMachine.lasers.find(l => (analysis?.laserId && l.id === analysis.laserId) || (analysis?.laserName && l.name === analysis.laserName));
+            if (recalLaser) {
+                recalLaser.baseTimestamp = confirmTime;
+                recalLaser.lastRecalibrationDate = confirmTime;
+            }
+        }
+        updatedMachine.lastUpdated = confirmTime;
         StorageService.saveMachine(updatedMachine);
         AppState.machines = StorageService.loadMachines();
         AppState.pendingRecalibration = null;
