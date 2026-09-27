@@ -65,6 +65,28 @@ async function syncMachineToFsos(m, lastUpdated, env) {
     }
 }
 
+function processLaserTimestamps(existingLasers, incomingLasers, saveTime) {
+    if (!Array.isArray(existingLasers) || !Array.isArray(incomingLasers)) {
+        return;
+    }
+    incomingLasers.forEach(laser => {
+        const prevLaser = existingLasers.find(pl => pl.id === laser.id);
+        if (prevLaser) {
+            const hourChanged = (laser.baseLaserHour !== prevLaser.baseLaserHour);
+            const tsExplicitlyChanged = Boolean(laser.baseTimestamp && laser.baseTimestamp !== prevLaser.baseTimestamp);
+            if (hourChanged) {
+                if (!tsExplicitlyChanged) {
+                    laser.baseTimestamp = saveTime;
+                }
+            } else {
+                if (!laser.baseTimestamp && prevLaser.baseTimestamp) {
+                    laser.baseTimestamp = prevLaser.baseTimestamp;
+                }
+            }
+        }
+    });
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -126,6 +148,16 @@ export default {
             if ((path === '/api/machines' || path.startsWith('/api/machines/')) && (method === 'POST' || method === 'PUT')) {
                 const m = await request.json();
                 const lastUpdated = m.lastUpdated || new Date().toISOString();
+
+                // Check existing machine in D1 to enforce timestamp rules
+                try {
+                    const existingRow = await env.DB.prepare('SELECT lasers FROM machines WHERE id = ?').bind(m.id).first();
+                    if (existingRow && existingRow.lasers) {
+                        const existingLasers = JSON.parse(existingRow.lasers || '[]');
+                        processLaserTimestamps(existingLasers, m.lasers, lastUpdated);
+                    }
+                } catch (e) {}
+
                 await env.DB.prepare(`
                     INSERT INTO machines (id, machine_no, machine_name, serial_no, manufacturer, model, department, lasers, maintenance_history, last_updated)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)

@@ -1521,15 +1521,29 @@ function setupEventListeners() {
             const lrated = Number(DOM.laserModalRated ? DOM.laserModalRated.value : 25000) || 25000;
             const lcontingency = Number(DOM.laserModalContingency ? DOM.laserModalContingency.value : 28000) || (lrated + 3000);
 
+            const saveTime = new Date().toISOString();
+
             if (lid) {
                 // Update existing laser
                 const existingLaser = machine.lasers.find(l => l.id === lid);
                 if (existingLaser) {
-                    let lbaseTs = null;
-                    if (existingLaser.baseTimestamp && safeToDatetimeLocal(existingLaser.baseTimestamp) === ltsInput) {
-                        lbaseTs = existingLaser.baseTimestamp; // Preserve exact byte-for-byte timestamp if unmodified
-                    } else if (ltsInput) {
-                        lbaseTs = safeToISOString(ltsInput, null);
+                    const originalLocalTs = existingLaser.baseTimestamp ? safeToDatetimeLocal(existingLaser.baseTimestamp, '') : '';
+                    const hourChanged = (lbaseHour !== existingLaser.baseLaserHour);
+                    const tsExplicitlyChanged = Boolean(ltsInput && ltsInput !== originalLocalTs);
+
+                    let lbaseTs = existingLaser.baseTimestamp;
+                    if (hourChanged) {
+                        if (tsExplicitlyChanged) {
+                            lbaseTs = safeToISOString(ltsInput, saveTime);
+                        } else {
+                            lbaseTs = saveTime;
+                        }
+                    } else {
+                        if (tsExplicitlyChanged) {
+                            lbaseTs = safeToISOString(ltsInput, existingLaser.baseTimestamp);
+                        } else {
+                            lbaseTs = existingLaser.baseTimestamp;
+                        }
                     }
 
                     existingLaser.name = lname;
@@ -1542,7 +1556,7 @@ function setupEventListeners() {
                 }
             } else {
                 // Add new laser
-                const lbaseTs = ltsInput ? safeToISOString(ltsInput, null) : null;
+                const lbaseTs = ltsInput ? safeToISOString(ltsInput, saveTime) : (lbaseHour !== null ? saveTime : null);
                 const newLaser = {
                     id: `${machine.id}-L${Date.now().toString().slice(-4)}`,
                     name: lname,

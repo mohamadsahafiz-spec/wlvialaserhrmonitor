@@ -26,6 +26,46 @@ export const LaserEngine = {
     _metricsCache: new Map(),
     _maxCacheSize: 1000,
 
+    /**
+     * Resolve laser baseline timestamp when operating hours or timestamps are modified.
+     * Rules:
+     * 1. When baseLaserHour changes:
+     *    - If timestamp explicitly changed -> preserve supplied timestamp
+     *    - If timestamp unchanged -> set baseTimestamp to save timestamp (new Date().toISOString())
+     * 2. When baseLaserHour does not change:
+     *    - Preserve existing baseTimestamp (unless explicitly updated)
+     */
+    resolveBaselineTimestamp(prevLaser, newBaseHour, newTimestampInput, saveTimestamp = new Date().toISOString()) {
+        const prevHour = (prevLaser && typeof prevLaser.baseLaserHour === 'number' && !isNaN(prevLaser.baseLaserHour)) ? prevLaser.baseLaserHour : null;
+        const incomingHour = (newBaseHour !== null && newBaseHour !== undefined && !isNaN(Number(newBaseHour))) ? Number(newBaseHour) : null;
+        const prevTs = prevLaser ? (prevLaser.baseTimestamp || null) : null;
+        const incomingTs = newTimestampInput || null;
+
+        const hourChanged = (incomingHour !== prevHour);
+
+        // Check if timestamp was explicitly changed compared to previous
+        let tsExplicitlyChanged = false;
+        if (incomingTs && incomingTs !== prevTs) {
+            const prevLocal = prevTs ? (prevTs.includes('T') ? prevTs.slice(0, 16) : prevTs) : '';
+            const inLocal = incomingTs.includes('T') ? incomingTs.slice(0, 16) : incomingTs;
+            if (inLocal !== prevLocal) {
+                tsExplicitlyChanged = true;
+            }
+        }
+
+        if (hourChanged) {
+            if (tsExplicitlyChanged && incomingTs) {
+                return incomingTs;
+            }
+            return saveTimestamp;
+        } else {
+            if (tsExplicitlyChanged && incomingTs) {
+                return incomingTs;
+            }
+            return prevTs;
+        }
+    },
+
     clearCache() {
         this._metricsCache.clear();
     },

@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2026-09-27
+
+### Added
+- Automated unit test suite (`test/baseline-timestamp.test.js`) verifying baseline timestamp resolution for operating hour edits and FSOS sync payloads.
+
+### Changed
+- **Laser Baseline Timestamp Resolution**:
+  - Automatically records the current save timestamp (`new Date().toISOString()`) as `baseTimestamp` whenever a laser's `baseLaserHour` is modified while leaving the existing timestamp unchanged.
+  - Preserves engineer-supplied explicit timestamp when `baseLaserHour` changes and an updated timestamp is provided.
+  - Preserves existing `baseTimestamp` when `baseLaserHour` is not modified.
+- Maintained strict contract compatibility for `baseLaserHour` and `baseTimestamp` in Cloudflare Worker and local server sync flows.
+
+---
+
 ## [1.0.0] - 2026-07-29
 
 ### Added

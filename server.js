@@ -111,6 +111,28 @@ async function syncMachineToFsosLocal(m, lastUpdated) {
   }
 }
 
+function processLaserTimestamps(existingMachine, incomingMachine, saveTime) {
+  if (!existingMachine || !Array.isArray(existingMachine.lasers) || !Array.isArray(incomingMachine.lasers)) {
+    return;
+  }
+  incomingMachine.lasers.forEach(laser => {
+    const prevLaser = existingMachine.lasers.find(pl => pl.id === laser.id);
+    if (prevLaser) {
+      const hourChanged = (laser.baseLaserHour !== prevLaser.baseLaserHour);
+      const tsExplicitlyChanged = Boolean(laser.baseTimestamp && laser.baseTimestamp !== prevLaser.baseTimestamp);
+      if (hourChanged) {
+        if (!tsExplicitlyChanged) {
+          laser.baseTimestamp = saveTime;
+        }
+      } else {
+        if (!laser.baseTimestamp && prevLaser.baseTimestamp) {
+          laser.baseTimestamp = prevLaser.baseTimestamp;
+        }
+      }
+    }
+  });
+}
+
 // 3. POST /api/machines (Create or Update)
 app.post('/api/machines', async (req, res) => {
   const m = req.body;
@@ -119,7 +141,12 @@ app.post('/api/machines', async (req, res) => {
   }
   const machines = readJsonFile(MACHINES_FILE, []);
   const idx = machines.findIndex(item => String(item.id) === String(m.id));
-  const updatedMachine = { ...m, lastUpdated: m.lastUpdated || new Date().toISOString() };
+  const existing = idx !== -1 ? machines[idx] : null;
+  const saveTime = m.lastUpdated || new Date().toISOString();
+
+  processLaserTimestamps(existing, m, saveTime);
+
+  const updatedMachine = { ...m, lastUpdated: saveTime };
   if (idx !== -1) {
     machines[idx] = updatedMachine;
   } else {
