@@ -39,7 +39,7 @@ async function syncMachineToFsos(m, lastUpdated, env) {
     if (!fsosUrl.includes('/api/lms/sync')) {
         fsosUrl = fsosUrl.replace(/\/+$/, '') + '/api/lms/sync';
     }
-    const token = env?.FSOS_SYNC_SECRET || env?.FSOS_AUTH_TOKEN || '';
+    const token = env?.LMS_SYNC_SECRET || env?.FSOS_SYNC_SECRET || env?.FSOS_AUTH_TOKEN || '';
     const payload = mapLmsToFsosPayload(m, lastUpdated);
 
     try {

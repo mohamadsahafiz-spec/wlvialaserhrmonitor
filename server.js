@@ -8,6 +8,33 @@ const PORT = 3000;
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(path.join(__dirname)));
 
+// Load local environment configuration from .env or .dev.env.json
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const trimmed = line.trim();
+      if (trimmed && !trimmed.startsWith('#')) {
+        const [k, ...v] = trimmed.split('=');
+        if (k && v.length > 0) {
+          process.env[k.trim()] = v.join('=').trim();
+        }
+      }
+    });
+  }
+} catch (e) {}
+
+try {
+  const devEnvPath = path.join(__dirname, '..', '.dev.env.json');
+  if (fs.existsSync(devEnvPath)) {
+    const devEnv = JSON.parse(fs.readFileSync(devEnvPath, 'utf8'));
+    Object.entries(devEnv).forEach(([k, v]) => {
+      if (!process.env[k]) process.env[k] = v;
+    });
+  }
+} catch (e) {}
+
 const MACHINES_FILE = path.join(__dirname, 'data', 'machines.json');
 const SETTINGS_FILE = path.join(__dirname, 'data', 'settings.json');
 
@@ -90,7 +117,7 @@ async function syncMachineToFsosLocal(m, lastUpdated) {
   if (!fsosUrl.includes('/api/lms/sync')) {
     fsosUrl = fsosUrl.replace(/\/+$/, '') + '/api/lms/sync';
   }
-  const token = process.env.FSOS_SYNC_SECRET || process.env.FSOS_AUTH_TOKEN || '';
+  const token = process.env.LMS_SYNC_SECRET || process.env.FSOS_SYNC_SECRET || process.env.FSOS_AUTH_TOKEN || '';
   if (!token) {
     // In local development without secret configured, skip unauthenticated remote sync
     return;
