@@ -2,6 +2,9 @@
    UTILS.JS - Helper Functions & Date/String Utilities
    ===================================================== */
 
+export const LMS_VERSION = '2.0.3';
+export const APP_VERSION = LMS_VERSION;
+
 /**
  * Format hours to string without comma separators.
  */

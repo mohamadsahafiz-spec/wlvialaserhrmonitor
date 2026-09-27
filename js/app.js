@@ -7,7 +7,7 @@ import { DashboardController } from './dashboard.js';
 import { MachineController } from './machine.js';
 import { RecalibrationController } from './recalibration.js';
 import { UI } from './ui.js';
-import { getCurrentEvalTime, getQueryParam, setQueryParam, safeToISOString, safeToDatetimeLocal } from './utils.js';
+import { getCurrentEvalTime, getQueryParam, setQueryParam, safeToISOString, safeToDatetimeLocal, LMS_VERSION } from './utils.js';
 
 const AppState = {
     machines: [],
@@ -376,8 +376,23 @@ function updateAppTitle(title) {
     document.title = finalTitle;
 }
 
+function updateAppVersionDisplays() {
+    document.querySelectorAll('.brand-version-badge').forEach(el => {
+        el.textContent = `v${LMS_VERSION}`;
+    });
+    const settingsVer = document.getElementById('settings-app-version');
+    if (settingsVer) {
+        settingsVer.textContent = `v${LMS_VERSION}`;
+    }
+    const opsBadge = document.querySelector('.ops-badge');
+    if (opsBadge) {
+        opsBadge.textContent = `LMS v${LMS_VERSION}`;
+    }
+}
+
 function populateSettingsForm() {
     if (!AppState.settings) return;
+    updateAppVersionDisplays();
     if (DOM.cfgAppTitle) DOM.cfgAppTitle.value = AppState.settings.systemTitle || "Laser Management System";
     if (DOM.cfgRatedLife) DOM.cfgRatedLife.value = AppState.settings.defaultRatedLife || 25000;
     if (DOM.cfgWarnPct) DOM.cfgWarnPct.value = AppState.settings.defaultWarningPercentage || 80;
@@ -432,6 +447,7 @@ async function initApp() {
     if (DOM.todayDate) DOM.todayDate.value = AppState.simulatedDate;
 
     updateAppTitle();
+    updateAppVersionDisplays();
     populateSettingsForm();
     UI.applyTheme(AppState.settings.theme);
     updateModeBadgeUI();
@@ -2139,7 +2155,7 @@ function setupEventListeners() {
             const currentMode = AppState.settings.accessMode || "ENGINEER";
             const defaultSettings = {
                 systemTitle: "Laser Management System",
-                version: "1.0",
+                version: LMS_VERSION,
                 theme: "dark",
                 defaultRatedLife: 25000,
                 defaultWarningPercentage: 80,

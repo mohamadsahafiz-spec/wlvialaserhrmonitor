@@ -1,7 +1,7 @@
 /* =====================================================
    STORAGE.JS - Local Storage & Data Persistence Layer
    ===================================================== */
-import { dateOffset } from './utils.js';
+import { dateOffset, LMS_VERSION } from './utils.js';
 import { LaserEngine } from './laserEngine.js';
 
 const STORAGE_KEY = 'wafer_driller_fleet_v5';
@@ -471,9 +471,21 @@ export const StorageService = {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedTarget)
-            }).then(res => {
-                if (res.ok) updateSyncStatus('SYNCED');
-                else updateSyncStatus('ERROR');
+            }).then(async res => {
+                if (res.ok) {
+                    const data = await res.json().catch(() => null);
+                    if (data && data.fsosSync !== undefined) {
+                        if (data.fsosSync && data.fsosSync.success === true && data.fsosSync.updated === true) {
+                            updateSyncStatus('SYNCED');
+                        } else {
+                            updateSyncStatus('ERROR');
+                        }
+                    } else {
+                        updateSyncStatus('SYNCED');
+                    }
+                } else {
+                    updateSyncStatus('ERROR');
+                }
             }).catch(err => {
                 updateSyncStatus('OFFLINE');
             });
@@ -508,7 +520,7 @@ export const StorageService = {
         }
         const defaults = {
             systemTitle: "Laser Management System",
-            version: "1.0",
+            version: LMS_VERSION,
             theme: "dark",
             defaultRatedLife: 25000,
             defaultWarningPercentage: 80,
@@ -532,6 +544,7 @@ export const StorageService = {
             const result = { 
                 ...defaults, 
                 ...parsed,
+                version: LMS_VERSION,
                 engineerPassword: String(parsed.engineerPassword || defaults.engineerPassword).trim() || '1234'
             };
             _cachedSettings = result;
@@ -550,7 +563,7 @@ export const StorageService = {
     saveSettings(settings) {
         const defaults = {
             systemTitle: "Laser Management System",
-            version: "1.0",
+            version: LMS_VERSION,
             theme: "dark",
             defaultRatedLife: 25000,
             defaultWarningPercentage: 80,
@@ -563,6 +576,7 @@ export const StorageService = {
             ...defaults,
             ...currentSaved,
             ...settings,
+            version: LMS_VERSION,
             engineerPassword: String(settings.engineerPassword || currentSaved.engineerPassword || defaults.engineerPassword).trim() || '1234'
         };
         _cachedSettings = safeSettings;
@@ -603,7 +617,7 @@ export const StorageService = {
         const settings = this.loadSettings();
         const simDate = localStorage.getItem('lms_simulated_date') || new Date().toISOString().split('T')[0];
         const exportObj = {
-            version: '1.0',
+            version: LMS_VERSION,
             exportedAt: new Date().toISOString(),
             simulatedDate: simDate,
             machines: JSON.parse(JSON.stringify(machines)),
@@ -715,8 +729,20 @@ export const StorageService = {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(machineData)
                 });
-                if (res.ok) updateSyncStatus('SYNCED');
-                else updateSyncStatus('ERROR');
+                if (res.ok) {
+                    const data = await res.json().catch(() => null);
+                    if (data && data.fsosSync !== undefined) {
+                        if (data.fsosSync && data.fsosSync.success === true && data.fsosSync.updated === true) {
+                            updateSyncStatus('SYNCED');
+                        } else {
+                            updateSyncStatus('ERROR');
+                        }
+                    } else {
+                        updateSyncStatus('SYNCED');
+                    }
+                } else {
+                    updateSyncStatus('ERROR');
+                }
             } catch (err) {
                 updateSyncStatus('OFFLINE');
             }

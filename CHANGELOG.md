@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.3] - 2026-09-27
+
+### Added
+- **FSOS Synchronization Contract Hardening**:
+  - Implemented comprehensive response evaluation for LMS → FSOS `/api/lms/sync` delivery contract.
+  - LMS now treats synchronization as successful only when HTTP status is 2xx, `success === true`, `updated === true`, `updatedCount >= 1`, and `updatedMachineIds` is non-empty.
+  - LMS treats HTTP errors, `success: false`, `updated: false`, `updatedCount: 0`, empty ID lists, or malformed responses as synchronization failure notices, correctly reflecting sync status across UI and storage layers.
+  - Added unit test suite `test/fsos-sync-contract.test.js` validating all response states (A through E).
+
+### Changed
+- **Unified LMS Application Versioning**:
+  - Bumped authoritative LMS version to `v2.0.3`.
+  - Exported canonical `LMS_VERSION` constant in `js/utils.js` shared across storage, settings, and presentation layers.
+  - Aligned all visible LMS application-version surfaces to `v2.0.3` (Header badge, System Information panel, Settings defaults, and Operations status bar).
+  - Rebranded bottom Operations status badge from legacy external branding to LMS application identity (`LMS v2.0.3`).
+
+---
+
 ## [2.0.2] - 2026-09-27
 
 ### Fixed

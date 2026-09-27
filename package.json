@@ -1,6 +1,6 @@
 {
   "name": "laser-management-system",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Laser Management System Version 2.0",
   "main": "server.js",
   "type": "commonjs",
@@ -9,7 +9,7 @@
     "build": "echo 'No build step required'",
     "start": "node server.js",
     "lint": "echo 'No lint errors found'",
-    "test": "node test/baseline-timestamp.test.js"
+    "test": "node test/baseline-timestamp.test.js && node test/fsos-sync-contract.test.js"
   },
   "dependencies": {
     "express": "^4.19.2"

@@ -31,10 +31,60 @@ function mapLmsToFsosPayload(m, lastUpdated) {
     };
 }
 
+function evaluateFsosSyncResponse(httpOk, httpStatus, body) {
+    if (!httpOk) {
+        return {
+            success: false,
+            updated: false,
+            updatedCount: 0,
+            updatedMachineIds: [],
+            error: `HTTP error ${httpStatus}`
+        };
+    }
+    if (!body || typeof body !== 'object') {
+        return {
+            success: false,
+            updated: false,
+            updatedCount: 0,
+            updatedMachineIds: [],
+            error: 'Invalid/unexpected FSOS response'
+        };
+    }
+
+    const isSuccess = (
+        body.success === true &&
+        body.updated === true &&
+        typeof body.updatedCount === 'number' &&
+        body.updatedCount >= 1 &&
+        Array.isArray(body.updatedMachineIds) &&
+        body.updatedMachineIds.length > 0
+    );
+
+    if (!isSuccess) {
+        return {
+            success: false,
+            updated: Boolean(body.updated),
+            updatedCount: typeof body.updatedCount === 'number' ? body.updatedCount : 0,
+            updatedMachineIds: Array.isArray(body.updatedMachineIds) ? body.updatedMachineIds : [],
+            message: body.message || 'FSOS reported no update or sync failure',
+            raw: body
+        };
+    }
+
+    return {
+        success: true,
+        updated: true,
+        updatedCount: body.updatedCount,
+        updatedMachineIds: body.updatedMachineIds,
+        message: body.message,
+        raw: body
+    };
+}
+
 async function syncMachineToFsos(m, lastUpdated, env) {
     let fsosUrl = env?.FSOS_SYNC_URL || env?.FSOS_ENDPOINT;
     if (!fsosUrl) {
-        return;
+        return { success: false, updated: false, updatedCount: 0, updatedMachineIds: [], error: 'NO_FSOS_URL' };
     }
     if (!fsosUrl.includes('/api/lms/sync')) {
         fsosUrl = fsosUrl.replace(/\/+$/, '') + '/api/lms/sync';
@@ -59,9 +109,25 @@ async function syncMachineToFsos(m, lastUpdated, env) {
 
         if (!res.ok) {
             console.error(`[LMS->FSOS Sync] Delivery failed with HTTP ${res.status}: ${res.statusText}`);
+            return evaluateFsosSyncResponse(false, res.status, null);
         }
+
+        let body;
+        try {
+            body = await res.json();
+        } catch (jsonErr) {
+            console.error(`[LMS->FSOS Sync] Malformed JSON response: ${jsonErr.message}`);
+            return evaluateFsosSyncResponse(true, res.status, null);
+        }
+
+        const evaluation = evaluateFsosSyncResponse(true, res.status, body);
+        if (!evaluation.success) {
+            console.warn(`[LMS->FSOS Sync] FSOS sync reported no update or failure:`, body);
+        }
+        return evaluation;
     } catch (err) {
         console.error(`[LMS->FSOS Sync] Network/delivery error: ${err.message}`);
+        return { success: false, updated: false, updatedCount: 0, updatedMachineIds: [], error: err.message };
     }
 }
 
@@ -185,9 +251,9 @@ export default {
                 ).run();
 
                 // Trigger automatic push of authoritative laser data to FSOS
-                await syncMachineToFsos(m, lastUpdated, env);
+                const fsosSync = await syncMachineToFsos(m, lastUpdated, env);
 
-                return new Response(JSON.stringify({ success: true, id: m.id, lastUpdated }), { headers: corsHeaders });
+                return new Response(JSON.stringify({ success: true, id: m.id, lastUpdated, fsosSync }), { headers: corsHeaders });
             }
 
             // DELETE /api/machines/:id
