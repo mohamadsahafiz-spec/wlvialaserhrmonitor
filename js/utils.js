@@ -2,7 +2,7 @@
    UTILS.JS - Helper Functions & Date/String Utilities
    ===================================================== */
 
-export const LMS_VERSION = '2.0.3';
+export const LMS_VERSION = '2.0.4';
 export const APP_VERSION = LMS_VERSION;
 
 /**

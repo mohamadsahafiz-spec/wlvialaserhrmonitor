@@ -272,7 +272,7 @@ app.delete('/api/machines/:id', (req, res) => {
 app.get('/api/settings', (req, res) => {
   const settings = readJsonFile(SETTINGS_FILE, {
     systemTitle: "Laser Management System",
-    version: "2.0.3",
+    version: "2.0.4",
     theme: "dark",
     defaultRatedLife: 25000,
     defaultWarningPercentage: 80,
@@ -311,6 +311,95 @@ app.post(['/api/sync/upload-local', '/api/sync/import'], (req, res) => {
     machineCount: machines.length,
     timestamp: new Date().toISOString()
   });
+});
+
+function getLaserIdentifier(laser, index) {
+  if (laser && laser.laserIdentifier) return laser.laserIdentifier;
+  if (laser && typeof laser.name === 'string') {
+    const match = laser.name.match(/LH\s*(\d+)/i) || laser.name.match(/Laser\s*Head\s*#?(\d+)/i) || laser.name.match(/L(\d+)$/i);
+    if (match) return `LH${match[1]}`;
+  }
+  if (laser && typeof laser.id === 'string') {
+    const match = laser.id.match(/-L(\d+)$/i);
+    if (match && Number(match[1]) <= 10) return `LH${match[1]}`;
+  }
+  return `LH${index + 1}`;
+}
+
+function calculateLaserHours(laser, now = new Date()) {
+  if (!laser || laser.baseLaserHour === null || laser.baseLaserHour === undefined || isNaN(Number(laser.baseLaserHour))) {
+    return 0;
+  }
+  const baseHour = Number(laser.baseLaserHour);
+  if (!laser.baseTimestamp) {
+    return Math.round(baseHour * 10) / 10;
+  }
+  const baseMs = new Date(laser.baseTimestamp).getTime();
+  const currentMs = now.getTime();
+  if (isNaN(baseMs) || isNaN(currentMs) || currentMs < baseMs) {
+    return Math.round(baseHour * 10) / 10;
+  }
+  const elapsedHours = (currentMs - baseMs) / (1000 * 60 * 60);
+  const total = baseHour + elapsedHours;
+  return Math.round(total * 10) / 10;
+}
+
+// 8. GET /api/lms/laser-hours (Read-only authoritative laser hours for FSOS)
+app.get('/api/lms/laser-hours', (req, res) => {
+  try {
+    const configuredToken = process.env.LMS_SYNC_SECRET || process.env.FSOS_SYNC_SECRET || process.env.FSOS_AUTH_TOKEN || '';
+    if (configuredToken) {
+      const authHeader = req.headers['authorization'] || '';
+      const xToken = req.headers['x-lms-auth-token'] || '';
+      const queryToken = req.query.token || req.query.secret || '';
+      const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+      const providedToken = bearerToken || xToken || queryToken;
+
+      if (!providedToken || providedToken !== configuredToken) {
+        return res.status(401).json({ error: 'Unauthorized: Invalid or missing authentication token' });
+      }
+    }
+
+    const machines = readJsonFile(MACHINES_FILE, null);
+    if (!machines) {
+      return res.status(500).json({ error: 'Failed to read machines database' });
+    }
+
+    const filterMachine = req.query.machine ? String(req.query.machine).trim() : null;
+    const filterLaser = req.query.laser ? String(req.query.laser).trim().toUpperCase() : null;
+    const records = [];
+
+    machines.forEach(m => {
+      const machineIdentifier = m.machineNo || m.machineName || m.machineNumber;
+      if (!machineIdentifier) return;
+      if (filterMachine && machineIdentifier !== filterMachine && m.id !== filterMachine) return;
+
+      const lasers = Array.isArray(m.lasers) ? m.lasers : [];
+      lasers.forEach((l, idx) => {
+        const laserIdentifier = getLaserIdentifier(l, idx);
+        if (filterLaser && laserIdentifier !== filterLaser) return;
+
+        const currentHours = calculateLaserHours(l);
+        const lastUpdated = l.lastRecalibrationDate || l.baseTimestamp || m.lastUpdated || null;
+
+        records.push({
+          machine: machineIdentifier,
+          laser: laserIdentifier,
+          laserHours: currentHours,
+          lastUpdated: lastUpdated
+        });
+      });
+    });
+
+    res.json({
+      success: true,
+      count: records.length,
+      data: records
+    });
+  } catch (err) {
+    console.error('[API] /api/lms/laser-hours error:', err);
+    res.status(500).json({ error: 'Internal server error reading laser hours' });
+  }
 });
 
 // Fallback for client-side routing

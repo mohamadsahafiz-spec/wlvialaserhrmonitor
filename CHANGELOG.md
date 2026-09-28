@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.4] - 2026-09-27
+
+### Added
+- **Read-Only Laser Operating Hours API (`GET /api/lms/laser-hours`)**:
+  - Exposes authoritative LMS laser operating-hour values for FSOS pull consumption.
+  - Returns sanitized telemetry payloads containing `machine` (e.g., `WLVIA#1`), `laser` (`LH1`, `LH2`), `laserHours`, and `lastUpdated` without exposing LMS internal IDs or FSOS IDs.
+  - Protected by existing shared read token authentication (`Authorization: Bearer <token>`, `X-LMS-Auth-Token`, or `?token=`).
+  - Added unit test suite `test/laser-hours-api.test.js` validating authentication, payload format, and WLVIA#1/LH1 querying.
+
+### Changed
+- **Unified LMS Application Versioning**:
+  - Bumped authoritative LMS version to `v2.0.4` across package configuration, constants, settings, and UI displays.
+
+---
+
 ## [2.0.3] - 2026-09-27
 
 ### Added

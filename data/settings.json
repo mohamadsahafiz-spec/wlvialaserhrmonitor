@@ -1,7 +1,7 @@
 {
   "systemTitle": "Laser Management System",
-  "version": "2.0.3",
-  "theme": "dark",
+  "version": "2.0.4",
+  "theme": "midnight",
   "defaultRatedLife": 25000,
   "defaultWarningPercentage": 80,
   "recalibrationInterval": 30,

@@ -131,6 +131,37 @@ async function syncMachineToFsos(m, lastUpdated, env) {
     }
 }
 
+function getLaserIdentifier(laser, index) {
+    if (laser && laser.laserIdentifier) return laser.laserIdentifier;
+    if (laser && typeof laser.name === 'string') {
+        const match = laser.name.match(/LH\s*(\d+)/i) || laser.name.match(/Laser\s*Head\s*#?(\d+)/i) || laser.name.match(/L(\d+)$/i);
+        if (match) return `LH${match[1]}`;
+    }
+    if (laser && typeof laser.id === 'string') {
+        const match = laser.id.match(/-L(\d+)$/i);
+        if (match && Number(match[1]) <= 10) return `LH${match[1]}`;
+    }
+    return `LH${index + 1}`;
+}
+
+function calculateLaserHours(laser, now = new Date()) {
+    if (!laser || laser.baseLaserHour === null || laser.baseLaserHour === undefined || isNaN(Number(laser.baseLaserHour))) {
+        return 0;
+    }
+    const baseHour = Number(laser.baseLaserHour);
+    if (!laser.baseTimestamp) {
+        return Math.round(baseHour * 10) / 10;
+    }
+    const baseMs = new Date(laser.baseTimestamp).getTime();
+    const currentMs = now.getTime();
+    if (isNaN(baseMs) || isNaN(currentMs) || currentMs < baseMs) {
+        return Math.round(baseHour * 10) / 10;
+    }
+    const elapsedHours = (currentMs - baseMs) / (1000 * 60 * 60);
+    const total = baseHour + elapsedHours;
+    return Math.round(total * 10) / 10;
+}
+
 function processLaserTimestamps(existingLasers, incomingLasers, saveTime) {
     if (!Array.isArray(existingLasers) || !Array.isArray(incomingLasers)) {
         return;
@@ -172,6 +203,68 @@ export default {
         }
 
         try {
+            // GET /api/lms/laser-hours (Read-only authoritative laser hours for FSOS)
+            if (path === '/api/lms/laser-hours' && method === 'GET') {
+                const configuredToken = env?.LMS_SYNC_SECRET || env?.FSOS_SYNC_SECRET || env?.FSOS_AUTH_TOKEN || '';
+                if (configuredToken) {
+                    const authHeader = request.headers.get('Authorization') || '';
+                    const xToken = request.headers.get('X-LMS-Auth-Token') || '';
+                    const queryToken = url.searchParams.get('token') || url.searchParams.get('secret') || '';
+                    const bearerToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7).trim() : authHeader.trim();
+                    const providedToken = bearerToken || xToken || queryToken;
+
+                    if (!providedToken || providedToken !== configuredToken) {
+                        return new Response(JSON.stringify({ error: 'Unauthorized: Invalid or missing authentication token' }), {
+                            status: 401,
+                            headers: corsHeaders
+                        });
+                    }
+                }
+
+                try {
+                    const { results } = await env.DB.prepare('SELECT * FROM machines ORDER BY last_updated DESC').all();
+                    const filterMachine = url.searchParams.get('machine');
+                    const filterLaser = url.searchParams.get('laser') ? url.searchParams.get('laser').trim().toUpperCase() : null;
+                    const records = [];
+
+                    results.forEach(row => {
+                        const machineNo = row.machine_no || row.machine_name;
+                        if (!machineNo) return;
+                        if (filterMachine && machineNo !== filterMachine && row.id !== filterMachine) return;
+
+                        let lasers = [];
+                        try { lasers = JSON.parse(row.lasers || '[]'); } catch (e) {}
+
+                        lasers.forEach((l, idx) => {
+                            const laserIdentifier = getLaserIdentifier(l, idx);
+                            if (filterLaser && laserIdentifier !== filterLaser) return;
+
+                            const currentHours = calculateLaserHours(l);
+                            const lastUpdated = l.lastRecalibrationDate || l.baseTimestamp || row.last_updated || null;
+
+                            records.push({
+                                machine: machineNo,
+                                laser: laserIdentifier,
+                                laserHours: currentHours,
+                                lastUpdated: lastUpdated
+                            });
+                        });
+                    });
+
+                    return new Response(JSON.stringify({
+                        success: true,
+                        count: records.length,
+                        data: records
+                    }), { headers: corsHeaders });
+                } catch (dbErr) {
+                    console.error('[Worker] DB error reading laser hours:', dbErr);
+                    return new Response(JSON.stringify({ error: 'Database error reading laser hours' }), {
+                        status: 500,
+                        headers: corsHeaders
+                    });
+                }
+            }
+
             // GET /api/machines
             if (path === '/api/machines' && method === 'GET') {
                 const { results } = await env.DB.prepare('SELECT * FROM machines ORDER BY last_updated DESC').all();

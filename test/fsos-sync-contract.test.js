@@ -119,29 +119,29 @@ console.log('--- Running FSOS Sync Contract & Version Tests ---');
     console.log('✓ PASS Case D: Invalid/malformed FSOS responses consistently report sync failure');
 }
 
-// Test Case E: LMS visible version surfaces resolve to the same authoritative v2.0.3
+// Test Case E: LMS visible version surfaces resolve to the same authoritative v2.0.4
 {
     const packageJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'package.json'), 'utf8'));
-    const expectedVersion = '2.0.3';
-    assert.strictEqual(packageJson.version, expectedVersion, 'package.json version must be 2.0.3');
+    const expectedVersion = '2.0.4';
+    assert.strictEqual(packageJson.version, expectedVersion, 'package.json version must be 2.0.4');
 
     const utilsContent = fs.readFileSync(path.join(__dirname, '..', 'js', 'utils.js'), 'utf8');
-    assert.ok(utilsContent.includes(`LMS_VERSION = '${expectedVersion}'`), 'js/utils.js must export authoritative LMS_VERSION 2.0.3');
+    assert.ok(utilsContent.includes(`LMS_VERSION = '${expectedVersion}'`), 'js/utils.js must export authoritative LMS_VERSION 2.0.4');
 
     const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
     // Header version
-    assert.ok(indexHtml.includes(`class="brand-version-badge">v${expectedVersion}</span>`), 'index.html header must show v2.0.3');
+    assert.ok(indexHtml.includes(`class="brand-version-badge">v${expectedVersion}</span>`), 'index.html header must show v2.0.4');
     // System info version
-    assert.ok(indexHtml.includes(`id="settings-app-version" class="settings-info-value">v${expectedVersion}</span>`), 'index.html system info must show v2.0.3');
+    assert.ok(indexHtml.includes(`id="settings-app-version" class="settings-info-value">v${expectedVersion}</span>`), 'index.html system info must show v2.0.4');
     // Bottom ops badge
-    assert.ok(indexHtml.includes(`class="ops-badge" id="ops-lms-badge">LMS v${expectedVersion}</span>`), 'index.html ops badge must show LMS v2.0.3');
+    assert.ok(indexHtml.includes(`class="ops-badge" id="ops-lms-badge">LMS v${expectedVersion}</span>`), 'index.html ops badge must show LMS v2.0.4');
     // No FSOS Enterprise in LMS UI
     assert.ok(!indexHtml.includes('FSOS ENTERPRISE'), 'index.html must not identify as FSOS Enterprise');
 
     const settingsJson = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'settings.json'), 'utf8'));
-    assert.strictEqual(settingsJson.version, expectedVersion, 'data/settings.json must specify version 2.0.3');
+    assert.strictEqual(settingsJson.version, expectedVersion, 'data/settings.json must specify version 2.0.4');
 
-    console.log('✓ PASS Case E: LMS visible version surfaces consistently resolve to authoritative v2.0.3');
+    console.log('✓ PASS Case E: LMS visible version surfaces consistently resolve to authoritative v2.0.4');
 }
 
 console.log('--- All FSOS Sync Contract & Version Tests Passed! ---');
