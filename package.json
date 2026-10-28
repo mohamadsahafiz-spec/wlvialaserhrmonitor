@@ -9,7 +9,7 @@
     "build": "echo 'No build step required'",
     "start": "node server.js",
     "lint": "echo 'No lint errors found'",
-    "test": "node test/baseline-timestamp.test.js && node test/fsos-sync-contract.test.js && node test/laser-hours-api.test.js"
+    "test": "node test/baseline-timestamp.test.js && node test/fsos-sync-contract.test.js && node test/laser-hours-api.test.js && node test/estimated-change-date.test.js"
   },
   "dependencies": {
     "express": "^4.19.2"

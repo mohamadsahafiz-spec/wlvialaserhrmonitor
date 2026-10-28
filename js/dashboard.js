@@ -19,7 +19,30 @@ let _lastSummary = {
 let _lastActionCenterSig = '';
 const _expandedDrawers = new Set();
 
+/**
+ * Calculate the estimated laser change date based on the reference date and days remaining.
+ * Estimated date = reference date + days remaining.
+ *
+ * @param {Date|string|number} referenceDate - The reference evaluation/simulation date.
+ * @param {number|null} daysRemaining - Days remaining (negative if overdue).
+ * @returns {string} Formatted date string (e.g. '30 Nov 2027') or '—'.
+ */
+export function calculateEstimatedChangeDate(referenceDate, daysRemaining) {
+    if (daysRemaining === null || daysRemaining === undefined || isNaN(daysRemaining)) {
+        return '—';
+    }
+    const refDate = referenceDate ? new Date(referenceDate) : new Date();
+    if (isNaN(refDate.getTime())) {
+        return '—';
+    }
+    const targetDate = new Date(refDate);
+    targetDate.setDate(targetDate.getDate() + Number(daysRemaining));
+    return formatDate(targetDate);
+}
+
 export const DashboardController = {
+    calculateEstimatedChangeDate,
+
     /**
      * Update Fleet Statistics Summary Panel above grid.
      */
@@ -383,15 +406,19 @@ export const DashboardController = {
 
                     let replaceDaysText = '—';
                     let isOverdue = false;
+                    let signedDaysRemaining = null;
                     if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
                         const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
                         if (crit.remainingTotal < 0) {
                             replaceDaysText = `${daysVal}d overdue`;
                             isOverdue = true;
+                            signedDaysRemaining = -daysVal;
                         } else {
                             replaceDaysText = `${daysVal}d remaining`;
+                            signedDaysRemaining = daysVal;
                         }
                     }
+                    const estDateText = calculateEstimatedChangeDate(evalTime, signedDaysRemaining);
 
                     let requiredAction = 'MONITOR';
                     let actionTone = 'action-safe';
@@ -419,6 +446,7 @@ export const DashboardController = {
                     const healthFill = card.querySelector('.mc-progress-fill');
                     const healthText = card.querySelector('.mc-progress-label');
                     const drawerRuntime = card.querySelector('.mc-drawer-val-runtime');
+                    const drawerEstDate = card.querySelector('.mc-drawer-val-est-date');
 
                     if (actionRow && actionPill) {
                         if (!isActionable) {
@@ -447,6 +475,10 @@ export const DashboardController = {
                     }
                     if (healthText) healthText.textContent = lifeRemainingDisplay;
                     if (drawerRuntime) drawerRuntime.textContent = `${currentHrsVal} hrs`;
+                    if (drawerEstDate) {
+                        drawerEstDate.textContent = estDateText;
+                        drawerEstDate.className = `mc-drawer-val mc-drawer-val-est-date ${isOverdue ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : '')}`;
+                    }
                 }
             });
             return;
@@ -480,15 +512,19 @@ export const DashboardController = {
 
             let replaceDaysText = '—';
             let isOverdue = false;
+            let signedDaysRemaining = null;
             if (crit.remainingDaysInfo && crit.remainingDaysInfo.daysVal !== null && !isNaN(crit.remainingDaysInfo.daysVal)) {
                 const daysVal = Math.abs(crit.remainingDaysInfo.daysVal);
                 if (crit.remainingTotal < 0) {
                     replaceDaysText = `${daysVal}d overdue`;
                     isOverdue = true;
+                    signedDaysRemaining = -daysVal;
                 } else {
                     replaceDaysText = `${daysVal}d remaining`;
+                    signedDaysRemaining = daysVal;
                 }
             }
+            const estDateText = calculateEstimatedChangeDate(evalTime, signedDaysRemaining);
 
             // 2. REQUIRED ACTION DETERMINATION (Only rendered if actionable)
             const isActionable = crit.status !== 'SAFE' || crit.isContingencyActive || crit.remainingTotal <= 0;
@@ -630,8 +666,8 @@ export const DashboardController = {
                             <span class="mc-drawer-val">${lastCalText}</span>
                         </div>
                         <div class="mc-drawer-item">
-                            <span class="mc-drawer-label">Burn Trend / PM</span>
-                            <span class="mc-drawer-val ${trendClass}">${trendText}</span>
+                            <span class="mc-drawer-label">EST. LASER CHANGE DATE</span>
+                            <span class="mc-drawer-val mc-drawer-val-est-date ${isOverdue ? 'color-alarm' : (crit.status === 'WARNING' ? 'color-warning' : '')}">${estDateText}</span>
                         </div>
                         <div class="mc-drawer-item">
                             <span class="mc-drawer-label">Serial Number</span>

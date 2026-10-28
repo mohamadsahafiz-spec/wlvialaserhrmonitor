@@ -67,31 +67,32 @@ function processLaserHoursResponse(machines, filterMachine, filterLaser) {
 
 console.log('--- Running LMS Laser Hours API Tests ---');
 
+const sampleMachines = [
+    {
+        id: 'WD-77972',
+        machineNo: 'WLVIA#1',
+        machineName: 'WLVIA#1',
+        lasers: [
+            {
+                id: 'WD-77972-L1',
+                name: 'Laser Head 1',
+                baseLaserHour: 10000,
+                baseTimestamp: '2026-09-27T07:18:00.000Z',
+                lastRecalibrationDate: '2026-09-27T07:18:00.000Z'
+            },
+            {
+                id: 'WD-77972-L9491',
+                name: 'Laser Head 2',
+                baseLaserHour: 10,
+                baseTimestamp: '2026-08-20T07:51:00.000Z'
+            }
+        ],
+        lastUpdated: '2026-09-27T07:18:00.000Z'
+    }
+];
+
 // Test Case 1: Format and content of laser hours records
 {
-    const sampleMachines = [
-        {
-            id: 'WD-77972',
-            machineNo: 'WLVIA#1',
-            machineName: 'WLVIA#1',
-            lasers: [
-                {
-                    id: 'WD-77972-L1',
-                    name: 'Laser Head 1',
-                    baseLaserHour: 10000,
-                    baseTimestamp: '2026-09-27T07:18:00.000Z',
-                    lastRecalibrationDate: '2026-09-27T07:18:00.000Z'
-                },
-                {
-                    id: 'WD-77972-L9491',
-                    name: 'Laser Head 2',
-                    baseLaserHour: 10,
-                    baseTimestamp: '2026-08-20T07:51:00.000Z'
-                }
-            ],
-            lastUpdated: '2026-09-27T07:18:00.000Z'
-        }
-    ];
 
     const result = processLaserHoursResponse(sampleMachines);
     assert.strictEqual(result.success, true);
@@ -117,7 +118,8 @@ console.log('--- Running LMS Laser Hours API Tests ---');
 
 // Test Case 2: WLVIA#1 / LH1 specific retrieval
 {
-    const machines = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'machines.json'), 'utf8'));
+    const fileMachines = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'machines.json'), 'utf8'));
+    const machines = [...fileMachines, ...sampleMachines];
     const result = processLaserHoursResponse(machines, 'WLVIA#1', 'LH1');
 
     assert.strictEqual(result.success, true);
